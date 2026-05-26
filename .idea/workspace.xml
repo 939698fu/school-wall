@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="434d77b2-3a50-4e91-9e5d-a50e83f65057" name="更改" comment="" />
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/school-wall" />
+  </component>
+  <component name="HighlightingSettingsPerFile">
+    <setting file="jar://C:/Program Files/Java/jdk-23/lib/src.zip!/java.base/java/lang/NoSuchFieldError.java" root0="SKIP_INSPECTION" />
+    <setting file="jar://C:/Program Files/Java/jdk-23/lib/src.zip!/jdk.compiler/com/sun/tools/javac/tree/JCTree.java" root0="SKIP_INSPECTION" />
+    <setting file="jar://$MAVEN_REPOSITORY$/com/fasterxml/jackson/core/jackson-databind/2.15.4/jackson-databind-2.15.4.jar!/com/fasterxml/jackson/databind/ObjectMapper.class" root0="SKIP_INSPECTION" />
+  </component>
+  <component name="ProjectColorInfo">{
+  &quot;associatedIndex&quot;: 0
+}</component>
+  <component name="ProjectId" id="3ECjiiSRek0h2Ny2aVZrUt3x4sM" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;Maven.school-wall [clean].executor&quot;: &quot;Run&quot;,
+    &quot;Maven.school-wall [compile].executor&quot;: &quot;Run&quot;,
+    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
+    &quot;RequestMappingsPanelOrder0&quot;: &quot;0&quot;,
+    &quot;RequestMappingsPanelOrder1&quot;: &quot;1&quot;,
+    &quot;RequestMappingsPanelWidth0&quot;: &quot;75&quot;,
+    &quot;RequestMappingsPanelWidth1&quot;: &quot;75&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+    &quot;Spring Boot.SchoolWallApplication.executor&quot;: &quot;Run&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;main&quot;,
+    &quot;last_opened_file_path&quot;: &quot;E:/school_wall&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;com.itangcent.idea.plugin.configurable.AccountConfigurable.apifox&quot;,
+    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
+  },
+  &quot;keyToStringList&quot;: {
+    &quot;DatabaseDriversLRU&quot;: [
+      &quot;mysql&quot;
+    ]
+  }
+}</component>
+  <component name="RunManager">
+    <configuration name="SchoolWallApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" nameIsGenerated="true">
+      <module name="school-wall" />
+      <option name="SPRING_BOOT_MAIN_CLASS" value="com.example.schoolwall.SchoolWallApplication" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+  </component>
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="默认任务">
+      <changelist id="434d77b2-3a50-4e91-9e5d-a50e83f65057" name="更改" comment="" />
+      <created>1779689574815</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1779689574815</updated>
+      <workItem from="1779689575947" duration="2412000" />
+      <workItem from="1779692011929" duration="1345000" />
+      <workItem from="1779693535461" duration="10463000" />
+      <workItem from="1779757167984" duration="612000" />
+    </task>
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
+  </component>
+  <component name="XSLT-Support.FileAssociations.UIState">
+    <expand />
+    <select />
+  </component>
+</project>

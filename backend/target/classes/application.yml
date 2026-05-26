@@ -1,0 +1,73 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: school-wall
+
+  # 数据源配置
+  datasource:
+    url: jdbc:mysql://localhost:3306/school_wall?useSSL=false&serverTimezone=Asia/Shanghai&character_set_server=utf8mb4&allowPublicKeyRetrieval=true
+    username: root
+    password: 123
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 5
+      idle-timeout: 30000
+      connection-timeout: 30000
+
+  # 文件上传配置
+  servlet:
+    multipart:
+      enabled: true
+      max-file-size: 10MB
+      max-request-size: 50MB
+
+# MyBatis Plus 配置
+mybatis-plus:
+  configuration:
+    map-underscore-to-camel-case: true
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+  global-config:
+    db-config:
+      id-type: auto
+      table-underline: true
+  mapper-locations: classpath:mapper/*.xml
+
+# JWT 配置
+jwt:
+  secret: school-wall-secret-key-2024-may-be-here-and-long-enough
+  expiration: 604800000  # 7天（毫秒）
+
+# Knife4j 配置
+knife4j:
+  enable: true
+  openapi:
+    title: 校园微墙 API
+    description: 校园微墙后端接口文档
+    version: 1.0.0
+    contact:
+      name: 开发团队
+      email: dev@example.com
+
+# 文件上传配置
+file:
+  upload:
+    path: ./uploads
+    access-url: /api/upload
+    max-size: 10
+    allowed-types:
+      - image/jpeg
+      - image/png
+      - image/gif
+      - image/webp
+
+# 日志配置
+logging:
+  level:
+    root: INFO
+    com.example.schoolwall: DEBUG
+    com.baomidou.mybatisplus: DEBUG
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"

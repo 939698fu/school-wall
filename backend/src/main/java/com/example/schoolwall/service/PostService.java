@@ -91,6 +91,16 @@ public interface PostService extends IService<Post> {
     IPage<PostVO> getMyPosts(Long userId, Integer page, Integer size);
 
     /**
+     * 获取指定用户的公开帖子
+     * @param targetUserId 目标用户ID
+     * @param currentUserId 当前用户ID（可选）
+     * @param page 页码
+     * @param size 每页数量
+     * @return 分页帖子列表
+     */
+    IPage<PostVO> getUserPosts(Long targetUserId, Long currentUserId, Integer page, Integer size);
+
+    /**
      * 获取我的收藏
      * @param userId 当前用户ID
      * @param page 页码

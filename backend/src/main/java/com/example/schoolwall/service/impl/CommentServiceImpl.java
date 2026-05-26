@@ -48,6 +48,7 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, Comment> impl
         if (post == null) {
             throw BusinessException.notFound("帖子不存在");
         }
+        validatePostAccessible(post, userId);
 
         Page<Comment> pageParam = new Page<>(page, size);
         
@@ -69,6 +70,7 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, Comment> impl
         if (post == null) {
             throw BusinessException.notFound("帖子不存在");
         }
+        validatePostAccessible(post, userId);
 
         // 获取用户信息
         User user = userMapper.selectById(userId);
@@ -210,5 +212,11 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, Comment> impl
                 .isAuthor(isAuthor)
                 .createTime(comment.getCreateTime())
                 .build();
+    }
+
+    private void validatePostAccessible(Post post, Long userId) {
+        if (post.getIsPrivate() != null && post.getIsPrivate() == 1 && !post.getUserId().equals(userId)) {
+            throw BusinessException.forbidden("该帖子仅作者自己可见");
+        }
     }
 }

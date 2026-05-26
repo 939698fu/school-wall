@@ -2,6 +2,7 @@ package com.example.schoolwall.controller;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.example.schoolwall.common.BusinessException;
 import com.example.schoolwall.common.Result;
 import com.example.schoolwall.dto.request.PostRequest;
 import com.example.schoolwall.dto.response.*;
@@ -171,6 +172,25 @@ public class PostController {
         }
 
         IPage<PostVO> result = postService.getMyPosts(userId, page, size);
+        return Result.success(result);
+    }
+
+    /**
+     * 获取指定用户的帖子
+     */
+    @GetMapping("/user/{userId}")
+    @Operation(summary = "获取指定用户的帖子", description = "获取指定用户的公开帖子列表")
+    public Result<IPage<PostVO>> getUserPosts(
+            @PathVariable Long userId,
+            @RequestAttribute(value = "userId", required = false) Long currentUserId,
+            @Parameter(description = "页码") @RequestParam(defaultValue = "1") Integer page,
+            @Parameter(description = "每页数量") @RequestParam(defaultValue = "10") Integer size) {
+
+        if (userMapper.selectById(userId) == null) {
+            throw BusinessException.notFound("用户不存在");
+        }
+
+        IPage<PostVO> result = postService.getUserPosts(userId, currentUserId, page, size);
         return Result.success(result);
     }
 

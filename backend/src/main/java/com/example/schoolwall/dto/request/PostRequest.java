@@ -36,4 +36,7 @@ public class PostRequest {
 
     @Schema(description = "是否匿名", example = "false")
     private Boolean isAnon = false;
+
+    @Schema(description = "是否仅自己可见", example = "false")
+    private Boolean isPrivate = false;
 }

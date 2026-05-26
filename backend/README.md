@@ -48,6 +48,10 @@ CREATE DATABASE school_wall DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicod
 
 2. 执行 `DATABASE.sql` 初始化表结构
 
+   ```bash
+   mysql -uroot -p < DATABASE.sql
+   ```
+
 3. 修改 `application.yml` 中的数据库配置：
 ```yaml
 spring:
@@ -67,6 +71,11 @@ mvn spring-boot:run
 ### 4. 访问接口文档
 
 启动后访问：`http://localhost:8080/doc.html`
+
+## 演示账号
+
+- 用户名：`demo`
+- 密码：`123456`
 
 ## API接口
 

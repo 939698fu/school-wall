@@ -5,7 +5,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
+import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+
+import java.io.File;
 
 /**
  * Web配置类
@@ -15,6 +18,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 public class WebConfig implements WebMvcConfigurer {
 
     private final JwtInterceptor jwtInterceptor;
+    private final FileUploadConfig fileUploadConfig;
 
     /**
      * 配置跨域
@@ -42,5 +46,12 @@ public class WebConfig implements WebMvcConfigurer {
                         "/v3/api-docs/**",      // OpenAPI文档
                         "/doc.html"             // Knife4j文档
                 );
+    }
+
+    @Override
+    public void addResourceHandlers(ResourceHandlerRegistry registry) {
+        String uploadPath = new File(fileUploadConfig.getPath()).getAbsolutePath() + File.separator;
+        registry.addResourceHandler(fileUploadConfig.getAccessUrl() + "/**")
+                .addResourceLocations("file:" + uploadPath);
     }
 }

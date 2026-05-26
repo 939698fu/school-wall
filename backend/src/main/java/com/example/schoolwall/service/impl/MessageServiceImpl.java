@@ -66,8 +66,12 @@ public class MessageServiceImpl extends ServiceImpl<MessageMapper, Message> impl
         Map<Long, User> userMap = users.stream()
                 .collect(Collectors.toMap(User::getId, user -> user));
 
+        List<Map.Entry<Long, Message>> sortedEntries = lastMessages.entrySet().stream()
+                .sorted((a, b) -> b.getValue().getCreateTime().compareTo(a.getValue().getCreateTime()))
+                .toList();
+
         List<ConversationVO> conversations = new ArrayList<>();
-        for (Map.Entry<Long, Message> entry : lastMessages.entrySet()) {
+        for (Map.Entry<Long, Message> entry : sortedEntries) {
             Long targetUserId = entry.getKey();
             Message lastMsg = entry.getValue();
             User user = userMap.get(targetUserId);
@@ -82,8 +86,6 @@ public class MessageServiceImpl extends ServiceImpl<MessageMapper, Message> impl
                     .unread(unreadCounts.getOrDefault(targetUserId, 0))
                     .build());
         }
-
-        conversations.sort((a, b) -> b.getLastTime().compareTo(a.getLastTime()));
 
         return conversations;
     }
@@ -103,10 +105,12 @@ public class MessageServiceImpl extends ServiceImpl<MessageMapper, Message> impl
                .orderByDesc(Message::getCreateTime);
 
         IPage<Message> messagePage = baseMapper.selectPage(pageParam, wrapper);
+        List<Message> records = new ArrayList<>(messagePage.getRecords());
+        Collections.reverse(records);
 
         IPage<MessageVO> resultPage = new Page<>(page, size);
         resultPage.setTotal(messagePage.getTotal());
-        resultPage.setRecords(messagePage.getRecords().stream()
+        resultPage.setRecords(records.stream()
                 .map(message -> convertToVO(message, userId))
                 .collect(Collectors.toList()));
 
@@ -121,6 +125,9 @@ public class MessageServiceImpl extends ServiceImpl<MessageMapper, Message> impl
         User targetUser = userMapper.selectById(request.getToId());
         if (targetUser == null) {
             throw BusinessException.notFound("接收用户不存在");
+        }
+        if (userId.equals(request.getToId())) {
+            throw BusinessException.badRequest("不能给自己发送私信");
         }
 
         String type = request.getType() != null ? request.getType() : "text";
@@ -181,8 +188,6 @@ public class MessageServiceImpl extends ServiceImpl<MessageMapper, Message> impl
         if (keyword == null || keyword.trim().isEmpty()) {
             return Collections.emptyList();
         }
-
-        String likeKeyword = "%" + keyword.trim() + "%";
 
         LambdaQueryWrapper<User> wrapper = new LambdaQueryWrapper<>();
         wrapper.and(w -> w.like(User::getNickname, keyword)

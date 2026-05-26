@@ -91,6 +91,7 @@ public class PostServiceImpl extends ServiceImpl<PostMapper, Post> implements Po
         Page<Post> pageParam = new Page<>(page, size);
         
         LambdaQueryWrapper<Post> wrapper = new LambdaQueryWrapper<>();
+        appendVisibilityCondition(wrapper, userId);
         
         // 标签筛选
         if (tag != null && !tag.isEmpty()) {
@@ -121,6 +122,7 @@ public class PostServiceImpl extends ServiceImpl<PostMapper, Post> implements Po
     @Override
     public CursorPageVO<PostVO> getPostListByCursor(Long cursor, Integer size, String type, String tag, Long userId) {
         LambdaQueryWrapper<Post> wrapper = new LambdaQueryWrapper<>();
+        appendVisibilityCondition(wrapper, userId);
 
         // 游标条件：只查询create_time小于游标的数据
         if (cursor != null) {
@@ -183,6 +185,7 @@ public class PostServiceImpl extends ServiceImpl<PostMapper, Post> implements Po
         if (post == null) {
             throw BusinessException.notFound("帖子不存在");
         }
+        validatePostAccessible(post, userId);
         
         // 获取评论列表
         List<Comment> comments = commentMapper.selectList(
@@ -250,12 +253,14 @@ public class PostServiceImpl extends ServiceImpl<PostMapper, Post> implements Po
         post.setTag(request.getTag() != null ? request.getTag() : "校园生活");
         post.setTagColor(request.getTagColor() != null ? request.getTagColor() : "gray");
         post.setIsAnon(request.getIsAnon() != null && request.getIsAnon() ? 1 : 0);
+        post.setIsPrivate(request.getIsPrivate() != null && request.getIsPrivate() ? 1 : 0);
         post.setLikes(0);
         post.setComments(0);
         
         baseMapper.insert(post);
         
         // 更新用户帖子数
+        user.setPostCount((user.getPostCount() == null ? 0 : user.getPostCount()) + 1);
         userMapper.updateById(user);
         
         log.info("帖子发布成功: userId={}, postId={}", userId, post.getId());
@@ -270,6 +275,7 @@ public class PostServiceImpl extends ServiceImpl<PostMapper, Post> implements Po
         if (post == null) {
             throw BusinessException.notFound("帖子不存在");
         }
+        validatePostAccessible(post, userId);
         
         // 检查是否已点赞
         LambdaQueryWrapper<LikeRecord> wrapper = new LambdaQueryWrapper<>();
@@ -312,6 +318,7 @@ public class PostServiceImpl extends ServiceImpl<PostMapper, Post> implements Po
         if (post == null) {
             throw BusinessException.notFound("帖子不存在");
         }
+        validatePostAccessible(post, userId);
         
         // 检查是否已收藏
         LambdaQueryWrapper<CollectRecord> wrapper = new LambdaQueryWrapper<>();
@@ -354,6 +361,12 @@ public class PostServiceImpl extends ServiceImpl<PostMapper, Post> implements Po
         
         // 删除帖子
         baseMapper.deleteById(postId);
+
+        User user = userMapper.selectById(userId);
+        if (user != null) {
+            user.setPostCount(Math.max(0, (user.getPostCount() == null ? 0 : user.getPostCount()) - 1));
+            userMapper.updateById(user);
+        }
         
         // 删除相关评论、点赞、收藏记录
         commentMapper.delete(new LambdaQueryWrapper<Comment>().eq(Comment::getPostId, postId));
@@ -374,6 +387,19 @@ public class PostServiceImpl extends ServiceImpl<PostMapper, Post> implements Po
         IPage<Post> postPage = baseMapper.selectPage(pageParam, wrapper);
         
         return postPage.convert(post -> convertToVO(post, userId));
+    }
+
+    @Override
+    public IPage<PostVO> getUserPosts(Long targetUserId, Long currentUserId, Integer page, Integer size) {
+        Page<Post> pageParam = new Page<>(page, size);
+
+        LambdaQueryWrapper<Post> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(Post::getUserId, targetUserId);
+        appendVisibilityCondition(wrapper, currentUserId);
+        wrapper.orderByDesc(Post::getCreateTime);
+
+        IPage<Post> postPage = baseMapper.selectPage(pageParam, wrapper);
+        return postPage.convert(post -> convertToVO(post, currentUserId));
     }
 
     @Override
@@ -478,6 +504,22 @@ public class PostServiceImpl extends ServiceImpl<PostMapper, Post> implements Po
                 .fullTime(post.getCreateTime() != null ? post.getCreateTime().format(FORMATTER) : null)
                 .createTime(post.getCreateTime())
                 .build();
+    }
+
+    private void appendVisibilityCondition(LambdaQueryWrapper<Post> wrapper, Long userId) {
+        if (userId == null) {
+            wrapper.and(w -> w.eq(Post::getIsPrivate, 0).or().isNull(Post::getIsPrivate));
+            return;
+        }
+        wrapper.and(w -> w.eq(Post::getIsPrivate, 0)
+                .or().isNull(Post::getIsPrivate)
+                .or(q -> q.eq(Post::getIsPrivate, 1).eq(Post::getUserId, userId)));
+    }
+
+    private void validatePostAccessible(Post post, Long userId) {
+        if (post.getIsPrivate() != null && post.getIsPrivate() == 1 && !post.getUserId().equals(userId)) {
+            throw BusinessException.forbidden("该帖子仅作者自己可见");
+        }
     }
 
     /**

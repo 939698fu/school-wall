@@ -50,6 +50,7 @@ public class SearchServiceImpl implements SearchService {
         LambdaQueryWrapper<Post> postWrapper = new LambdaQueryWrapper<>();
         postWrapper.and(w -> w.like(Post::getTitle, keyword)
                 .or().like(Post::getContent, keyword))
+                .and(w -> w.eq(Post::getIsPrivate, 0).or().isNull(Post::getIsPrivate))
                 .orderByDesc(Post::getCreateTime);
         
         List<Post> posts = postMapper.selectList(postWrapper);

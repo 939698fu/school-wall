@@ -1,13 +1,14 @@
 -- 校园微墙测试数据脚本
--- 使用说明：在数据库初始化后执行此脚本
--- 用户密码统一为：123456（SHA-256加密，salt固定为：schoolwall_salt_2024）
+-- 用途：补齐帖子图片、个人信息、收藏/关注、私信图片与未读会话，便于前后端联调
+-- 默认联调账号：
+--   username: chengzi
+--   password: 123456
 
 USE `school_wall`;
 
--- ----------------------------
--- 清空现有数据（按依赖顺序）
--- ----------------------------
+SET NAMES utf8mb4;
 SET FOREIGN_KEY_CHECKS = 0;
+
 TRUNCATE TABLE `message`;
 TRUNCATE TABLE `follow_record`;
 TRUNCATE TABLE `collect_record`;
@@ -15,179 +16,207 @@ TRUNCATE TABLE `like_record`;
 TRUNCATE TABLE `comment`;
 TRUNCATE TABLE `post`;
 TRUNCATE TABLE `user`;
+
 SET FOREIGN_KEY_CHECKS = 1;
 
--- ----------------------------
--- 1. 用户表测试数据（15条）
--- ----------------------------
-INSERT INTO `user` (`username`, `password`, `open_id`, `nickname`, `avatar`, `school`, `bio`, `post_count`, `like_count`, `collect_count`, `create_time`) VALUES
-('chengzi', 'schoolwall_salt_2024$8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92', 'wx_openid_001', '橙子不甜', '🍊', '某某大学', '喜欢吃喝玩乐，摸鱼度日🐟', 12, 286, 43, '2024-01-15 10:30:00'),
-('shuxue', 'schoolwall_salt_2024$8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92', 'wx_openid_002', '数学学长', '🦁', '某某大学', '数学系大三，喜欢数学分析', 25, 1520, 89, '2024-02-20 14:15:00'),
-('xiaojuzi', 'schoolwall_salt_2024$8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92', 'wx_openid_003', '小橘子同学', '🐱', '某某大学', '努力学习的大一新生', 8, 156, 23, '2024-03-01 09:00:00'),
-('anonym', 'schoolwall_salt_2024$8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92', 'wx_openid_004', '匿名树洞', '🐼', '某某大学', '偶尔分享，常逛帖子', 5, 312, 12, '2024-01-10 16:45:00'),
-('xuexi', 'schoolwall_salt_2024$8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92', 'wx_openid_005', '学习委员本委', '📖', '某某大学', '分享学习资源，帮助同学进步', 20, 430, 56, '2024-02-10 11:20:00'),
-('meishi', 'schoolwall_salt_2024$8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92', 'wx_openid_006', '美食探索者', '🍔', '某某大学', '吃遍校园每个角落🍕', 18, 678, 78, '2024-01-25 08:30:00'),
-('xiaoyun', 'schoolwall_salt_2024$8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92', 'wx_openid_007', '小云同学', '☁️', '某某大学', '热爱生活，记录美好', 15, 345, 42, '2024-03-10 13:00:00'),
-('tiyu', 'schoolwall_salt_2024$8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92', 'wx_openid_008', '运动少年', '⚽', '某某大学', '足球爱好者，每周踢球', 10, 234, 28, '2024-02-05 17:00:00'),
-('yinyue', 'schoolwall_salt_2024$8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92', 'wx_openid_009', '音乐达人', '🎵', '某某大学', '吉他社成员，喜欢弹唱', 13, 567, 35, '2024-01-18 10:00:00'),
-('shuji', 'schoolwall_salt_2024$8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92', 'wx_openid_010', '书虫小周', '📚', '某某大学', '泡图书馆的日子最快乐', 7, 189, 52, '2024-03-05 09:30:00'),
-('huahua', 'schoolwall_salt_2024$8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92', 'wx_openid_011', '花花世界', '🌸', '某某大学', '爱花爱生活', 9, 256, 31, '2024-02-25 14:45:00'),
-('xiaoming', 'schoolwall_salt_2024$8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92', 'wx_openid_012', '小明同学', '👨‍🎓', '某某大学', '普通大学生一枚', 11, 178, 29, '2024-01-20 16:20:00'),
-('lili', 'schoolwall_salt_2024$8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92', 'wx_openid_013', '莉莉酱', '💃', '某某大学', '舞蹈爱好者💃', 14, 423, 47, '2024-02-15 11:00:00'),
-('programmer', 'schoolwall_salt_2024$8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92', 'wx_openid_014', '程序猿小王', '💻', '某某大学', '码农日常，debug中...', 16, 389, 61, '2024-03-08 10:15:00'),
-('traveler', 'schoolwall_salt_2024$8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92', 'wx_openid_015', '旅行家阿杰', '✈️', '某某大学', '喜欢旅行，记录风景', 12, 456, 54, '2024-01-28 08:00:00');
+-- 当前后端的密码格式为 salt$base64(sha256(password + salt))
+SET @pwd = 'c2Nob29sd2FsbF9zYWx0XzIwMjQ=$Nq9s3E7I+RYTDgG7hW4ZWmbNQNYUC0H626rPWwd03Z8=';
 
--- ----------------------------
--- 2. 帖子表测试数据（18条）
--- ----------------------------
-INSERT INTO `post` (`user_id`, `title`, `content`, `images`, `tag`, `tag_color`, `is_anon`, `is_private`, `likes`, `comments`, `create_time`) VALUES
-(1, '北区食堂新出的麻辣香锅真的绝了！！', '今天中午去北区食堂吃饭，偶然发现新开了个麻辣香锅窗口，随手点了一份，结果完全惊艳到我了！！\n\n食材超级新鲜，锅底是那种红汤的，麻辣程度可以自选，我选了中辣刚刚好。里面有午餐肉、腐竹、莲藕、土豆...价格也很实惠，才18块钱。\n\n强烈推荐大家去试试！就在北区食堂二楼最右边那个窗口，记得早点去不然要排长队的！', '[\"https://example.com/food1.jpg\",\"https://example.com/food2.jpg\"]', '美食', 'orange', 1, 0, 128, 34, '2024-03-20 12:30:00'),
-(3, '有没有大神可以帮我看一下这道数分题？', '这道题我做了两个小时还没搞明白，感觉思路有点对但是最后一步总是卡住，求大神指点...\n\n题目是：设 f(x) 在 [a,b] 上连续，在 (a,b) 上可导，且 f(a)=f(b)=0，证明存在 ξ∈(a,b) 使得 f(ξ)+f(ξ)=0。', NULL, '学习', 'blue', 0, 0, 56, 21, '2024-03-19 15:45:00'),
-(4, '想向图书馆二楼靠窗那个男生表白', '每次去图书馆都能看到你，黑色卫衣，总是戴着耳机认真看书，不知道你叫什么名字，只是觉得这种专注的样子特别好看。\n\n如果你刚好看到这条帖子，可以私信我吗🥺', NULL, '表白', 'pink', 1, 0, 312, 88, '2024-03-18 20:15:00'),
-(1, '图书馆自习座位被人\"占座\"了该怎么办', '今天去图书馆，看到一排座位全部用书包占着，但是人都不在。我等了快一个小时了，这合理吗？学校有没有规定说不能占座？', NULL, '吐槽', 'gray', 0, 0, 89, 45, '2024-03-17 10:00:00'),
-(5, '分享一个超好用的备考资料整理网站', '期末季到了，分享给大家一个整理好的备考资源站，里面有历年真题和重点笔记，纯白嫖，感谢学长学姐们的贡献！\n\n网站地址：https://example.com/resources', '[\"https://example.com/website.png\"]', '资源', 'green', 0, 0, 430, 62, '2024-03-16 09:30:00'),
-(6, '南门小吃街的烤冷面YYDS！', '南门门口那家烤冷面真的绝了，加蛋加肠才8块钱，酱料是老板秘制的，酸酸甜甜的特别好吃！\n\n每次路过都要排队，但真的值得！', '[\"https://example.com/kaolengmian.jpg\"]', '美食', 'orange', 0, 0, 256, 38, '2024-03-15 17:20:00'),
-(7, '春日限定！樱花树下的图书馆', '今天路过图书馆门口，发现樱花都开了，粉色的花瓣飘落下来真的太美了，随手拍了几张照片分享给大家🌸', '[\"https://example.com/cherry1.jpg\",\"https://example.com/cherry2.jpg\",\"https://example.com/cherry3.jpg\"]', '校园生活', 'pink', 0, 0, 189, 23, '2024-03-14 14:00:00'),
-(8, '周末足球友谊赛报名啦！', '周六下午三点，足球场有一场友谊赛，欢迎喜欢足球的同学一起来玩！不论水平，重在参与～\n\n有意向的同学私信我报名！', NULL, '运动', 'green', 0, 0, 78, 15, '2024-03-13 16:30:00'),
-(9, '周五晚吉他社演出，欢迎来听！', '本周五晚上七点，大学生活动中心小剧场，吉他社专场演出，有弹唱、指弹、原创歌曲，欢迎大家来捧场！', '[\"https://example.com/guitar.jpg\"]', '活动', 'purple', 0, 0, 134, 28, '2024-03-12 11:15:00'),
-(10, '推荐几本最近看的好书', '最近读完了《百年孤独》和《三体》，真的太震撼了！强烈推荐给喜欢读书的朋友们～\n\n有没有同学想一起组建读书小组的？', NULL, '书籍', 'blue', 0, 0, 98, 31, '2024-03-11 20:45:00'),
-(11, '宿舍阳台的花开了🌼', '去年秋天种的向日葵终于开花了！从一颗小小的种子到现在开出这么大的花盘，真的很有成就感～', '[\"https://example.com/sunflower.jpg\"]', '生活', 'yellow', 0, 0, 167, 19, '2024-03-10 08:30:00'),
-(12, '求助：校园卡丢了怎么补办？', '今天早上发现校园卡不见了，找了一圈都没找到，请问补办流程是怎样的？需要带什么证件？大概要多久？', NULL, '求助', 'red', 0, 0, 12, 5, '2024-03-09 09:15:00'),
-(13, '舞蹈社招新啦！零基础也可以来！', '新学期舞蹈社招新开始啦～不管有没有基础都可以来试试，我们有爵士、韩舞、中国舞等多个舞种！\n\n本周三下午四点，大学生活动中心面试～', '[\"https://example.com/dance.jpg\"]', '活动', 'purple', 0, 0, 145, 26, '2024-03-08 13:00:00'),
-(14, 'Python学习路线分享', '整理了一份Python学习路线图，从入门到进阶，包含推荐书籍、在线课程和实战项目，分享给想学Python的同学～', '[\"https://example.com/python.png\"]', '学习', 'blue', 0, 0, 267, 44, '2024-03-07 10:20:00'),
-(15, '清明假期去哪玩？', '清明假期想出去走走，有没有同学推荐一下周边好玩的地方？不想跑太远，车程两小时以内最好～', NULL, '旅行', 'green', 0, 0, 45, 18, '2024-03-06 17:45:00'),
-(2, '数学建模比赛组队！', '今年的数学建模比赛想找队友，本人数学系大三，擅长建模和编程，希望找一个写作好的队友～', NULL, '组队', 'orange', 0, 0, 34, 12, '2024-03-05 15:00:00'),
-(4, '深夜emo一下...', '最近压力好大，课程越来越难，感觉自己什么都学不会，有时候真的很焦虑😔', NULL, '树洞', 'gray', 1, 0, 87, 42, '2024-03-04 23:30:00'),
-(7, '食堂二楼的奶茶铺开业了！', '今天发现食堂二楼新开了一家奶茶店，买一送一活动！我点了一杯芋泥波波，味道还不错～', '[\"https://example.com/milktea.jpg\"]', '美食', 'orange', 0, 0, 112, 22, '2024-03-03 12:00:00');
+INSERT INTO `user`
+(`id`, `username`, `password`, `open_id`, `nickname`, `avatar`, `school`, `bio`,
+ `post_count`, `like_count`, `collect_count`, `follower_count`, `following_count`, `create_time`, `update_time`)
+VALUES
+(1, 'chengzi', @pwd, 'wx_openid_001', '橙子不甜', '🍊', '某某大学', '喜欢吃喝玩乐，常在校园墙摸鱼。', 0, 0, 0, 0, 0, DATE_SUB(NOW(), INTERVAL 120 DAY), NOW()),
+(2, 'shuxue', @pwd, 'wx_openid_002', '数学学长', '🦁', '某某大学', '数学系大三，看到题就想证明。', 0, 0, 0, 0, 0, DATE_SUB(NOW(), INTERVAL 110 DAY), NOW()),
+(3, 'xiaojuzi', @pwd, 'wx_openid_003', '小橘子同学', '🐱', '某某大学', '努力学习的大一新生。', 0, 0, 0, 0, 0, DATE_SUB(NOW(), INTERVAL 100 DAY), NOW()),
+(4, 'treehole', @pwd, 'wx_openid_004', '树洞来信', '🐼', '某某大学', '把没说出口的话交给风。', 0, 0, 0, 0, 0, DATE_SUB(NOW(), INTERVAL 95 DAY), NOW()),
+(5, 'studyhub', @pwd, 'wx_openid_005', '学习委员本委', '📖', '某某大学', '专注整理资料，也负责分享。', 0, 0, 0, 0, 0, DATE_SUB(NOW(), INTERVAL 90 DAY), NOW()),
+(6, 'foodie', @pwd, 'wx_openid_006', '美食探索者', '🍜', '某某大学', '正在逐个攻克食堂和小吃街。', 0, 0, 0, 0, 0, DATE_SUB(NOW(), INTERVAL 88 DAY), NOW()),
+(7, 'cloudy', @pwd, 'wx_openid_007', '小云同学', '☁️', '某某大学', '热爱记录校园里的小确幸。', 0, 0, 0, 0, 0, DATE_SUB(NOW(), INTERVAL 80 DAY), NOW()),
+(8, 'ballboy', @pwd, 'wx_openid_008', '运动少年', '⚽', '某某大学', '每周都在找人踢球。', 0, 0, 0, 0, 0, DATE_SUB(NOW(), INTERVAL 75 DAY), NOW()),
+(9, 'musicman', @pwd, 'wx_openid_009', '音乐达人', '🎵', '某某大学', '吉他社常驻选手。', 0, 0, 0, 0, 0, DATE_SUB(NOW(), INTERVAL 70 DAY), NOW()),
+(10, 'coder', @pwd, 'wx_openid_010', '程序猿小王', '💻', '某某大学', '白天写代码，晚上 debug。', 0, 0, 0, 0, 0, DATE_SUB(NOW(), INTERVAL 65 DAY), NOW());
 
--- ----------------------------
--- 3. 评论表测试数据（20条）
--- ----------------------------
-INSERT INTO `comment` (`post_id`, `user_id`, `content`, `likes`, `create_time`) VALUES
-(1, 3, '已经约好舍友明天中午去！感谢博主强推！🔥🔥', 23, '2024-03-20 12:45:00'),
-(1, 4, '北区食堂要排队的，我今天特意绕过去看了，队伍排到门口了哈哈哈', 11, '2024-03-20 13:00:00'),
-(1, 6, '哇！终于等到北区食堂有好吃的了！', 8, '2024-03-20 13:15:00'),
-(2, 2, '考虑辅助函数 g(x)=e^x·f(x)，然后对 g 用罗尔定理即可', 18, '2024-03-19 16:00:00'),
-(2, 3, '啊啊啊！懂了懂了！太感谢了！', 3, '2024-03-19 16:10:00'),
-(2, 14, '可以再详细讲讲吗？我也卡在这道题了', 5, '2024-03-19 16:30:00'),
-(3, 1, '图书馆二楼靠窗男生们：是我！都是我！', 200, '2024-03-18 20:30:00'),
-(3, 5, '图书馆二楼靠窗现在已经没有位置了（', 99, '2024-03-18 20:45:00'),
-(3, 7, '勇敢一点！冲啊！', 56, '2024-03-18 21:00:00'),
-(4, 10, '占座确实很讨厌，建议向图书馆管理员反映', 12, '2024-03-17 10:30:00'),
-(4, 5, '我们学校规定占座超过30分钟可以收走物品', 8, '2024-03-17 11:00:00'),
-(5, 12, '太好了！正好需要这些资料，感谢分享！', 15, '2024-03-16 10:00:00'),
-(5, 3, '这个网站我知道！真的超级好用！', 11, '2024-03-16 10:15:00'),
-(6, 1, '那家我也经常去！老板人超好！', 7, '2024-03-15 17:35:00'),
-(7, 11, '太美了！明天一定要去拍照！', 6, '2024-03-14 14:15:00'),
-(8, 8, '算我一个！好久没踢球了！', 4, '2024-03-13 16:45:00'),
-(9, 9, '欢迎大家来玩！我们准备了很多精彩节目！', 3, '2024-03-12 11:30:00'),
-(10, 10, '《百年孤独》确实值得一读！', 5, '2024-03-11 21:00:00'),
-(11, 11, '好厉害！我也想种向日葵🌻', 4, '2024-03-10 09:00:00'),
-(12, 5, '去行政楼一楼学生事务中心办理，带身份证就行，当天就能拿到', 8, '2024-03-09 09:30:00');
+INSERT INTO `post`
+(`id`, `user_id`, `title`, `content`, `images`, `tag`, `tag_color`, `is_anon`, `is_private`, `likes`, `comments`, `create_time`, `update_time`)
+VALUES
+(1, 1, '北区食堂新出的麻辣香锅真的绝了！！',
+ '今天中午去北区食堂吃饭，偶然发现新开了个麻辣香锅窗口，随手点了一份结果完全惊艳到我了。食材新鲜、锅底够香、价格也很实惠，强烈推荐大家去试试！',
+ JSON_ARRAY(
+   'https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=900&q=80',
+   'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=900&q=80'
+ ),
+ '美食', 'orange', 1, 0, 0, 0, DATE_SUB(NOW(), INTERVAL 3 HOUR), DATE_SUB(NOW(), INTERVAL 3 HOUR)),
+(2, 3, '有没有大神可以帮我看一下这道数分题？',
+ '这道题我做了两个小时还没搞明白，最后一步总是卡住。题目是设 f(x) 在 [a,b] 上连续，在 (a,b) 上可导，且 f(a)=f(b)=0，证明存在 ξ∈(a,b) 使得 f''(ξ)+f(ξ)=0。求带带！',
+ JSON_ARRAY('https://images.unsplash.com/photo-1503676260728-1c00da094a0b?auto=format&fit=crop&w=900&q=80'),
+ '学习', 'blue', 0, 0, 0, 0, DATE_SUB(NOW(), INTERVAL 2 HOUR), DATE_SUB(NOW(), INTERVAL 2 HOUR)),
+(3, 4, '想向图书馆二楼靠窗那个男生表白',
+ '每次去图书馆都能看到你，黑色卫衣，总是戴着耳机认真看书。如果你刚好看到这条帖子，可以私信我吗。',
+ JSON_ARRAY('https://images.unsplash.com/photo-1521587760476-6c12a4b040da?auto=format&fit=crop&w=900&q=80'),
+ '表白', 'pink', 1, 0, 0, 0, DATE_SUB(NOW(), INTERVAL 5 HOUR), DATE_SUB(NOW(), INTERVAL 5 HOUR)),
+(4, 5, '分享一个超好用的备考资料整理网站',
+ '期末季到了，分享给大家一个整理好的备考资源站，里面有历年真题和重点笔记，纯白嫖。想找资料的同学可以先收藏这条。',
+ JSON_ARRAY(
+   'https://images.unsplash.com/photo-1513258496099-48168024aec0?auto=format&fit=crop&w=900&q=80',
+   'https://images.unsplash.com/photo-1455390582262-044cdead277a?auto=format&fit=crop&w=900&q=80'
+ ),
+ '资源', 'green', 0, 0, 0, 0, DATE_SUB(NOW(), INTERVAL 8 HOUR), DATE_SUB(NOW(), INTERVAL 8 HOUR)),
+(5, 7, '春日限定！樱花树下的图书馆',
+ '今天路过图书馆门口，发现樱花都开了，粉色花瓣飘下来的时候真的很治愈，随手拍了几张分享给大家。',
+ JSON_ARRAY(
+   'https://images.unsplash.com/photo-1522383225653-ed111181a951?auto=format&fit=crop&w=900&q=80',
+   'https://images.unsplash.com/photo-1490750967868-88aa4486c946?auto=format&fit=crop&w=900&q=80',
+   'https://images.unsplash.com/photo-1527061011665-3652c757a4d4?auto=format&fit=crop&w=900&q=80'
+ ),
+ '校园生活', 'pink', 0, 0, 0, 0, DATE_SUB(NOW(), INTERVAL 1 DAY), DATE_SUB(NOW(), INTERVAL 1 DAY)),
+(6, 8, '周末足球友谊赛报名啦！',
+ '周六下午三点，足球场有一场友谊赛，欢迎喜欢足球的同学一起来玩！不论水平，重在参与，有意向的可以私信我报名。',
+ NULL,
+ '运动', 'green', 0, 0, 0, 0, DATE_SUB(NOW(), INTERVAL 30 HOUR), DATE_SUB(NOW(), INTERVAL 30 HOUR)),
+(7, 10, 'Python 学习路线分享',
+ '整理了一份 Python 学习路线图，从入门到进阶，包含推荐书籍、在线课程和实战项目，分享给想学 Python 的同学。',
+ JSON_ARRAY('https://images.unsplash.com/photo-1515879218367-8466d910aaa4?auto=format&fit=crop&w=900&q=80'),
+ '学习', 'blue', 0, 0, 0, 0, DATE_SUB(NOW(), INTERVAL 2 DAY), DATE_SUB(NOW(), INTERVAL 2 DAY)),
+(8, 1, '图书馆自习座位被人占座了该怎么办',
+ '今天去图书馆看到一排座位全用书包占着，但是人都不在。我等了快一个小时了，这种情况可以向谁反馈？',
+ NULL,
+ '校园生活', 'gray', 0, 0, 0, 0, DATE_SUB(NOW(), INTERVAL 40 HOUR), DATE_SUB(NOW(), INTERVAL 40 HOUR)),
+(9, 9, '周五晚吉他社演出，欢迎来听！',
+ '本周五晚上七点，大学生活动中心小剧场，吉他社专场演出，有弹唱、指弹和原创歌曲，欢迎来捧场。',
+ JSON_ARRAY('https://images.unsplash.com/photo-1511379938547-c1f69419868d?auto=format&fit=crop&w=900&q=80'),
+ '校园生活', 'green', 0, 0, 0, 0, DATE_SUB(NOW(), INTERVAL 3 DAY), DATE_SUB(NOW(), INTERVAL 3 DAY)),
+(10, 6, '南门小吃街的烤冷面 YYDS！',
+ '南门口那家烤冷面真的绝了，加蛋加肠才 8 块钱，酱料酸甜刚好，每次路过都要排队，但真的值得。',
+ JSON_ARRAY('https://images.unsplash.com/photo-1550547660-d9450f859349?auto=format&fit=crop&w=900&q=80'),
+ '美食', 'orange', 0, 0, 0, 0, DATE_SUB(NOW(), INTERVAL 4 DAY), DATE_SUB(NOW(), INTERVAL 4 DAY)),
+(11, 4, '深夜 emo 一下...',
+ '最近压力有点大，课程越来越难，感觉自己什么都学不会。有时候真的会怀疑自己是不是不适合现在的节奏。',
+ NULL,
+ '校园生活', 'gray', 1, 0, 0, 0, DATE_SUB(NOW(), INTERVAL 10 HOUR), DATE_SUB(NOW(), INTERVAL 10 HOUR)),
+(12, 1, '只给自己看的发帖草稿',
+ '这是一条仅自己可见的帖子，用来验证前端不会把私密贴展示给其他人。',
+ NULL,
+ '校园生活', 'gray', 0, 1, 0, 0, DATE_SUB(NOW(), INTERVAL 20 MINUTE), DATE_SUB(NOW(), INTERVAL 20 MINUTE));
 
--- ----------------------------
--- 4. 点赞记录表测试数据（20条）
--- ----------------------------
-INSERT INTO `like_record` (`user_id`, `post_id`, `comment_id`, `create_time`) VALUES
-(1, 1, NULL, '2024-03-20 12:35:00'),
-(2, 1, NULL, '2024-03-20 12:40:00'),
-(3, 1, NULL, '2024-03-20 12:45:00'),
-(4, 3, NULL, '2024-03-18 20:20:00'),
-(5, 3, NULL, '2024-03-18 20:25:00'),
-(6, 1, NULL, '2024-03-20 13:00:00'),
-(7, 7, NULL, '2024-03-14 14:10:00'),
-(8, 8, NULL, '2024-03-13 16:35:00'),
-(9, 9, NULL, '2024-03-12 11:20:00'),
-(10, 10, NULL, '2024-03-11 20:50:00'),
-(11, 11, NULL, '2024-03-10 08:45:00'),
-(12, 5, NULL, '2024-03-16 10:05:00'),
-(13, 13, NULL, '2024-03-08 13:10:00'),
-(14, 14, NULL, '2024-03-07 10:25:00'),
-(15, 15, NULL, '2024-03-06 17:50:00'),
-(1, NULL, 1, '2024-03-20 12:46:00'),
-(2, NULL, 4, '2024-03-19 16:05:00'),
-(3, NULL, 4, '2024-03-19 16:15:00'),
-(5, NULL, 12, '2024-03-16 10:05:00'),
-(7, NULL, 7, '2024-03-18 21:05:00');
+INSERT INTO `comment`
+(`id`, `post_id`, `user_id`, `content`, `likes`, `create_time`, `update_time`)
+VALUES
+(1, 1, 3, '已经约好舍友明天中午去！感谢博主强推！🔥🔥', 0, DATE_SUB(NOW(), INTERVAL 170 MINUTE), NOW()),
+(2, 1, 6, '那家我也去吃了，土豆片真的很绝。', 0, DATE_SUB(NOW(), INTERVAL 160 MINUTE), NOW()),
+(3, 1, 1, '@美食探索者 你下次试试加宽粉，真的会更香。', 0, DATE_SUB(NOW(), INTERVAL 150 MINUTE), NOW()),
+(4, 2, 2, '考虑辅助函数 g(x)=e^x·f(x)，然后对 g 用罗尔定理即可。', 0, DATE_SUB(NOW(), INTERVAL 115 MINUTE), NOW()),
+(5, 2, 3, '啊啊啊懂了懂了！太感谢了！', 0, DATE_SUB(NOW(), INTERVAL 110 MINUTE), NOW()),
+(6, 2, 10, '这题我也卡住了，感谢学长。', 0, DATE_SUB(NOW(), INTERVAL 105 MINUTE), NOW()),
+(7, 3, 1, '图书馆二楼靠窗男生们：是我！都是我！', 0, DATE_SUB(NOW(), INTERVAL 280 MINUTE), NOW()),
+(8, 3, 7, '勇敢一点！冲！', 0, DATE_SUB(NOW(), INTERVAL 270 MINUTE), NOW()),
+(9, 4, 10, '这个我也在用，资料整理得很清楚。', 0, DATE_SUB(NOW(), INTERVAL 460 MINUTE), NOW()),
+(10, 4, 3, '正好在复习，先收藏了。', 0, DATE_SUB(NOW(), INTERVAL 440 MINUTE), NOW()),
+(11, 5, 1, '明天中午准备去打卡拍照了。', 0, DATE_SUB(NOW(), INTERVAL 1300 MINUTE), NOW()),
+(12, 6, 1, '算我一个！我带水过去。', 0, DATE_SUB(NOW(), INTERVAL 1700 MINUTE), NOW()),
+(13, 7, 5, '这份路线图很完整，适合新手入门。', 0, DATE_SUB(NOW(), INTERVAL 2800 MINUTE), NOW()),
+(14, 8, 5, '我们学校规定占座超过 30 分钟可以联系管理员处理。', 0, DATE_SUB(NOW(), INTERVAL 2200 MINUTE), NOW()),
+(15, 9, 7, '上次去听过，现场氛围真的很好。', 0, DATE_SUB(NOW(), INTERVAL 4300 MINUTE), NOW()),
+(16, 10, 1, '这家我愿称之为小吃街 MVP。', 0, DATE_SUB(NOW(), INTERVAL 5600 MINUTE), NOW()),
+(17, 11, 3, '抱抱你，最近真的很多人都在焦虑。', 0, DATE_SUB(NOW(), INTERVAL 540 MINUTE), NOW()),
+(18, 11, 2, '别急，先把节奏放慢一点也没关系。', 0, DATE_SUB(NOW(), INTERVAL 500 MINUTE), NOW());
 
--- ----------------------------
--- 5. 收藏记录表测试数据（15条）
--- ----------------------------
-INSERT INTO `collect_record` (`user_id`, `post_id`, `create_time`) VALUES
-(1, 1, '2024-03-20 12:36:00'),
-(1, 5, '2024-03-16 09:35:00'),
-(2, 2, '2024-03-19 15:50:00'),
-(2, 5, '2024-03-16 09:40:00'),
-(3, 1, '2024-03-20 12:50:00'),
-(3, 2, '2024-03-19 15:55:00'),
-(5, 5, '2024-03-16 09:31:00'),
-(6, 1, '2024-03-20 13:05:00'),
-(6, 6, '2024-03-15 17:25:00'),
-(10, 10, '2024-03-11 20:48:00'),
-(14, 5, '2024-03-16 09:38:00'),
-(14, 14, '2024-03-07 10:22:00'),
-(7, 7, '2024-03-14 14:05:00'),
-(8, 8, '2024-03-13 16:32:00'),
-(9, 9, '2024-03-12 11:18:00');
+INSERT INTO `like_record`
+(`id`, `user_id`, `post_id`, `comment_id`, `create_time`, `update_time`)
+VALUES
+(1, 3, 1, NULL, DATE_SUB(NOW(), INTERVAL 175 MINUTE), NOW()),
+(2, 6, 1, NULL, DATE_SUB(NOW(), INTERVAL 174 MINUTE), NOW()),
+(3, 7, 1, NULL, DATE_SUB(NOW(), INTERVAL 173 MINUTE), NOW()),
+(4, 2, 2, NULL, DATE_SUB(NOW(), INTERVAL 118 MINUTE), NOW()),
+(5, 5, 2, NULL, DATE_SUB(NOW(), INTERVAL 117 MINUTE), NOW()),
+(6, 1, 2, NULL, DATE_SUB(NOW(), INTERVAL 116 MINUTE), NOW()),
+(7, 1, 3, NULL, DATE_SUB(NOW(), INTERVAL 290 MINUTE), NOW()),
+(8, 7, 3, NULL, DATE_SUB(NOW(), INTERVAL 289 MINUTE), NOW()),
+(9, 3, 4, NULL, DATE_SUB(NOW(), INTERVAL 470 MINUTE), NOW()),
+(10, 10, 4, NULL, DATE_SUB(NOW(), INTERVAL 465 MINUTE), NOW()),
+(11, 1, 5, NULL, DATE_SUB(NOW(), INTERVAL 1400 MINUTE), NOW()),
+(12, 8, 6, NULL, DATE_SUB(NOW(), INTERVAL 1750 MINUTE), NOW()),
+(13, 5, 7, NULL, DATE_SUB(NOW(), INTERVAL 2850 MINUTE), NOW()),
+(14, 1, 8, NULL, DATE_SUB(NOW(), INTERVAL 2250 MINUTE), NOW()),
+(15, 7, 9, NULL, DATE_SUB(NOW(), INTERVAL 4350 MINUTE), NOW()),
+(16, 1, 10, NULL, DATE_SUB(NOW(), INTERVAL 5650 MINUTE), NOW()),
+(17, 3, NULL, 4, DATE_SUB(NOW(), INTERVAL 114 MINUTE), NOW()),
+(18, 10, NULL, 4, DATE_SUB(NOW(), INTERVAL 113 MINUTE), NOW()),
+(19, 1, NULL, 7, DATE_SUB(NOW(), INTERVAL 279 MINUTE), NOW()),
+(20, 2, NULL, 17, DATE_SUB(NOW(), INTERVAL 535 MINUTE), NOW());
 
--- ----------------------------
--- 6. 关注记录表测试数据（15条）
--- ----------------------------
-INSERT INTO `follow_record` (`user_id`, `followed_id`, `create_time`) VALUES
-(1, 2, '2024-02-10 10:00:00'),
-(1, 5, '2024-02-15 14:30:00'),
-(1, 6, '2024-02-20 09:15:00'),
-(3, 2, '2024-03-02 11:00:00'),
-(3, 5, '2024-03-05 16:45:00'),
-(5, 2, '2024-02-12 13:20:00'),
-(5, 14, '2024-03-08 10:30:00'),
-(6, 1, '2024-03-15 17:30:00'),
-(7, 11, '2024-03-10 08:35:00'),
-(8, 2, '2024-02-25 15:00:00'),
-(9, 13, '2024-03-12 11:25:00'),
-(10, 5, '2024-03-11 20:55:00'),
-(12, 5, '2024-03-09 09:20:00'),
-(14, 2, '2024-03-07 10:28:00'),
-(15, 1, '2024-03-06 17:55:00');
+INSERT INTO `collect_record`
+(`id`, `user_id`, `post_id`, `create_time`, `update_time`)
+VALUES
+(1, 1, 4, DATE_SUB(NOW(), INTERVAL 455 MINUTE), NOW()),
+(2, 1, 7, DATE_SUB(NOW(), INTERVAL 2805 MINUTE), NOW()),
+(3, 1, 10, DATE_SUB(NOW(), INTERVAL 5605 MINUTE), NOW()),
+(4, 3, 1, DATE_SUB(NOW(), INTERVAL 169 MINUTE), NOW()),
+(5, 3, 4, DATE_SUB(NOW(), INTERVAL 450 MINUTE), NOW()),
+(6, 5, 2, DATE_SUB(NOW(), INTERVAL 112 MINUTE), NOW()),
+(7, 5, 7, DATE_SUB(NOW(), INTERVAL 2790 MINUTE), NOW()),
+(8, 6, 1, DATE_SUB(NOW(), INTERVAL 168 MINUTE), NOW()),
+(9, 7, 5, DATE_SUB(NOW(), INTERVAL 1290 MINUTE), NOW()),
+(10, 10, 2, DATE_SUB(NOW(), INTERVAL 109 MINUTE), NOW());
 
--- ----------------------------
--- 7. 消息表测试数据（20条）
--- ----------------------------
-INSERT INTO `message` (`from_id`, `to_id`, `content`, `type`, `is_read`, `create_time`) VALUES
-(2, 3, '你好，我看了你发的那道数分题', 'text', 1, '2024-03-19 15:55:00'),
-(3, 2, '啊好的！你有思路吗', 'text', 1, '2024-03-19 15:56:00'),
-(2, 3, '考虑辅助函数 g(x)=e^x·f(x)，对 g 用罗尔定理就行', 'text', 1, '2024-03-19 15:58:00'),
-(3, 2, '哇！懂了！那你有空可以帮我看看其他几道吗😭', 'text', 1, '2024-03-19 16:00:00'),
-(2, 3, '可以，明天下午图书馆见！', 'text', 0, '2024-03-19 16:02:00'),
-(1, 3, '晚上一起去吃麻辣香锅不', 'text', 0, '2024-03-20 12:48:00'),
-(5, 1, '你好，我想报名这次志愿者活动', 'text', 1, '2024-03-16 09:45:00'),
-(1, 5, '好的收到，我转给负责人', 'text', 1, '2024-03-16 09:48:00'),
-(8, 1, '周末足球赛记得来啊！', 'text', 1, '2024-03-13 16:50:00'),
-(1, 8, '一定到！', 'text', 1, '2024-03-13 16:52:00'),
-(9, 7, '周五演出记得来看哦！', 'text', 1, '2024-03-12 11:35:00'),
-(7, 9, '好的！期待演出！', 'text', 1, '2024-03-12 11:38:00'),
-(14, 5, '你分享的那个资料网站真的太棒了！', 'text', 1, '2024-03-16 10:20:00'),
-(5, 14, '哈哈，能帮到你就好！', 'text', 1, '2024-03-16 10:22:00'),
-(11, 7, '你的向日葵长得真好！能分享一下种植经验吗？', 'text', 1, '2024-03-10 09:05:00'),
-(7, 11, '其实很简单啦，就是每天浇水晒太阳～', 'text', 1, '2024-03-10 09:10:00'),
-(6, 1, '北区食堂的麻辣香锅真的好吃吗？', 'text', 0, '2024-03-20 13:20:00'),
-(13, 12, '舞蹈社招新你报名了吗？', 'text', 0, '2024-03-08 13:15:00'),
-(15, 1, '清明假期要不要一起去周边玩？', 'text', 0, '2024-03-06 18:00:00'),
-(4, 3, '加油！别焦虑，慢慢来～', 'text', 1, '2024-03-04 23:35:00');
+INSERT INTO `follow_record`
+(`id`, `user_id`, `followed_id`, `create_time`, `update_time`)
+VALUES
+(1, 1, 2, DATE_SUB(NOW(), INTERVAL 60 DAY), NOW()),
+(2, 1, 5, DATE_SUB(NOW(), INTERVAL 52 DAY), NOW()),
+(3, 1, 6, DATE_SUB(NOW(), INTERVAL 40 DAY), NOW()),
+(4, 3, 2, DATE_SUB(NOW(), INTERVAL 35 DAY), NOW()),
+(5, 3, 5, DATE_SUB(NOW(), INTERVAL 28 DAY), NOW()),
+(6, 5, 2, DATE_SUB(NOW(), INTERVAL 30 DAY), NOW()),
+(7, 5, 10, DATE_SUB(NOW(), INTERVAL 15 DAY), NOW()),
+(8, 6, 1, DATE_SUB(NOW(), INTERVAL 25 DAY), NOW()),
+(9, 7, 1, DATE_SUB(NOW(), INTERVAL 20 DAY), NOW()),
+(10, 8, 1, DATE_SUB(NOW(), INTERVAL 18 DAY), NOW()),
+(11, 8, 2, DATE_SUB(NOW(), INTERVAL 18 DAY), NOW()),
+(12, 9, 7, DATE_SUB(NOW(), INTERVAL 12 DAY), NOW()),
+(13, 10, 5, DATE_SUB(NOW(), INTERVAL 8 DAY), NOW());
 
--- ----------------------------
--- 更新用户统计数据
--- ----------------------------
-UPDATE `user` u 
-SET 
-    post_count = (SELECT COUNT(*) FROM `post` p WHERE p.user_id = u.id),
-    like_count = (SELECT COALESCE(SUM(p.likes), 0) FROM `post` p WHERE p.user_id = u.id),
-    collect_count = (SELECT COUNT(*) FROM `collect_record` c WHERE c.user_id = u.id);
+INSERT INTO `message`
+(`id`, `from_id`, `to_id`, `content`, `type`, `file_url`, `is_read`, `create_time`, `update_time`)
+VALUES
+(1, 2, 1, '你好，我看了你发的那道数分题。', 'text', NULL, 1, DATE_SUB(NOW(), INTERVAL 95 MINUTE), NOW()),
+(2, 1, 2, '太好了，我最后一步总卡住。', 'text', NULL, 1, DATE_SUB(NOW(), INTERVAL 90 MINUTE), NOW()),
+(3, 2, 1, '你先试试构造 g(x)=e^x·f(x)，再用罗尔定理。', 'text', NULL, 1, DATE_SUB(NOW(), INTERVAL 86 MINUTE), NOW()),
+(4, 1, 2, '懂了懂了！那你有空可以帮我看看另外两道吗？', 'text', NULL, 1, DATE_SUB(NOW(), INTERVAL 82 MINUTE), NOW()),
+(5, 2, 1, '可以，明天下午图书馆见！', 'text', NULL, 0, DATE_SUB(NOW(), INTERVAL 78 MINUTE), NOW()),
+(6, 1, 2, '', 'image', 'https://images.unsplash.com/photo-1503676260728-1c00da094a0b?auto=format&fit=crop&w=900&q=80', 0, DATE_SUB(NOW(), INTERVAL 75 MINUTE), NOW()),
+(7, 6, 1, '北区食堂的麻辣香锅真的有那么好吃吗？', 'text', NULL, 0, DATE_SUB(NOW(), INTERVAL 35 MINUTE), NOW()),
+(8, 1, 6, '真的可以冲，我刚又去吃了一次。', 'text', NULL, 1, DATE_SUB(NOW(), INTERVAL 32 MINUTE), NOW()),
+(9, 6, 1, '', 'image', 'https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=900&q=80', 0, DATE_SUB(NOW(), INTERVAL 28 MINUTE), NOW()),
+(10, 5, 1, '你好，我想把下周志愿活动的海报也发到校园墙，可以吗？', 'text', NULL, 1, DATE_SUB(NOW(), INTERVAL 5 HOUR), NOW()),
+(11, 1, 5, '可以呀，你把文案和图片发我。', 'text', NULL, 1, DATE_SUB(NOW(), INTERVAL 290 MINUTE), NOW()),
+(12, 5, 1, '', 'image', 'https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&w=900&q=80', 1, DATE_SUB(NOW(), INTERVAL 280 MINUTE), NOW()),
+(13, 8, 1, '周末足球赛记得来啊！', 'text', NULL, 1, DATE_SUB(NOW(), INTERVAL 26 HOUR), NOW()),
+(14, 1, 8, '一定到，我还会带一个室友。', 'text', NULL, 1, DATE_SUB(NOW(), INTERVAL 25 HOUR), NOW()),
+(15, 7, 1, '你拍的樱花照片太好看了，能发我原图吗？', 'text', NULL, 0, DATE_SUB(NOW(), INTERVAL 7 HOUR), NOW()),
+(16, 1, 7, '可以呀，我晚点整理完发你。', 'text', NULL, 1, DATE_SUB(NOW(), INTERVAL 6 HOUR), NOW());
 
--- ----------------------------
--- 更新帖子评论数
--- ----------------------------
-UPDATE `post` p 
-SET comments = (SELECT COUNT(*) FROM `comment` c WHERE c.post_id = p.id);
+UPDATE `post` p
+SET `comments` = (
+  SELECT COUNT(*) FROM `comment` c WHERE c.post_id = p.id
+);
 
-SELECT '测试数据插入完成！' AS result;
+UPDATE `post` p
+SET `likes` = (
+  SELECT COUNT(*) FROM `like_record` lr WHERE lr.post_id = p.id
+);
+
+UPDATE `comment` c
+SET `likes` = (
+  SELECT COUNT(*) FROM `like_record` lr WHERE lr.comment_id = c.id
+);
+
+UPDATE `user` u
+SET
+  `post_count` = (SELECT COUNT(*) FROM `post` p WHERE p.user_id = u.id),
+  `like_count` = (SELECT COALESCE(SUM(p.likes), 0) FROM `post` p WHERE p.user_id = u.id),
+  `collect_count` = (SELECT COUNT(*) FROM `collect_record` cr WHERE cr.user_id = u.id),
+  `follower_count` = (SELECT COUNT(*) FROM `follow_record` fr WHERE fr.followed_id = u.id),
+  `following_count` = (SELECT COUNT(*) FROM `follow_record` fr WHERE fr.user_id = u.id);
+
+SELECT 'TEST_DATA.sql 导入完成' AS result;

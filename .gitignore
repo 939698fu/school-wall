@@ -3,4 +3,3 @@ target/
 *.iml
 logs/
 .env
-backend/target

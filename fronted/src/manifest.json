@@ -1,0 +1,52 @@
+{
+  "name": "campus-wall",
+  "appid": "__UNI__CAMPUSWALL",
+  "description": "校园墙 - 校园匿名社区",
+  "versionName": "1.0.0",
+  "versionCode": "100",
+  "transformPx": false,
+  "app-plus": {
+    "usingComponents": true,
+    "nvueStyleCompiler": "uni-compiler",
+    "compilerVersion": 3,
+    "splashscreen": {
+      "alwaysShowBeforeRender": true,
+      "waiting": true,
+      "autoclose": true,
+      "delay": 0
+    },
+    "modules": {},
+    "distribute": {
+      "android": {},
+      "ios": {},
+      "sdkConfigs": {}
+    }
+  },
+  "quickapp": {},
+  "mp-weixin": {
+    "appid": "wxec7999d3f2fb4a98",
+    "setting": {
+      "urlCheck": false,
+      "es6": true,
+      "postcss": true,
+      "minified": true
+    },
+    "usingComponents": true,
+    "permission": {
+      "scope.userInfo": {
+        "desc": "获取用户信息用于登录"
+      }
+    },
+    "lazyCodeLoading": "requiredComponents"
+  },
+  "mp-alipay": {
+    "usingComponents": true
+  },
+  "h5": {
+    "pageNotFound": "pages/home/index",
+    "devServer": {
+      "port": 5173,
+      "disableHostCheck": true
+    }
+  }
+}

@@ -1,0 +1,64 @@
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: school-wall-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-school_wall}
+      MYSQL_USER: ${MYSQL_USER:-schoolwall}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      TZ: Asia/Shanghai
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+      - --default-authentication-plugin=mysql_native_password
+    volumes:
+      - mysql_data:/var/lib/mysql
+      # 首次启动时自动执行建表与初始数据
+      - ./DATABASE.sql:/docker-entrypoint-initdb.d/01-init.sql:ro
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+      start_period: 40s
+    networks:
+      - school-wall-net
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    image: school-wall-backend:latest
+    container_name: school-wall-backend
+    restart: unless-stopped
+    env_file:
+      - .env
+    depends_on:
+      mysql:
+        condition: service_healthy
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      MYSQL_HOST: mysql
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-school_wall}
+      MYSQL_USER: ${MYSQL_USER:-schoolwall}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      JWT_SECRET: ${JWT_SECRET}
+      WECHAT_APP_ID: ${WECHAT_APP_ID:-wxec7999d3f2fb4a98}
+      WECHAT_APP_SECRET: ${WECHAT_APP_SECRET}
+      TZ: Asia/Shanghai
+    ports:
+      - "${APP_PORT:-8080}:8080"
+    volumes:
+      - uploads_data:/app/uploads
+    networks:
+      - school-wall-net
+
+volumes:
+  mysql_data:
+  uploads_data:
+
+networks:
+  school-wall-net:
+    driver: bridge

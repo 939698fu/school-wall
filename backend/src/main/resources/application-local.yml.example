@@ -1,0 +1,10 @@
+# 复制本文件为 application-local.yml 并填写 AppSecret（该文件已加入 .gitignore，不会提交）
+#
+#   cp application-local.yml.example application-local.yml
+#
+# AppSecret 获取：微信公众平台 → 开发 → 开发管理 → 开发设置 → AppSecret（需管理员扫码）
+
+wechat:
+  miniapp:
+    app-id: wxec7999d3f2fb4a98
+    app-secret: 在这里填写你的AppSecret

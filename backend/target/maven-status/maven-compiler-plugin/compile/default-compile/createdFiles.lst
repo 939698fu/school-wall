@@ -30,13 +30,16 @@ com\example\schoolwall\entity\Post.class
 com\example\schoolwall\dto\request\PostRequest.class
 com\example\schoolwall\dto\response\UserVO.class
 com\example\schoolwall\SchoolWallApplication.class
+com\example\schoolwall\controller\PostController.class
 com\example\schoolwall\service\AuthService.class
 com\example\schoolwall\security\PasswordEncoder.class
 com\example\schoolwall\dto\response\SearchPostVO$SearchPostVOBuilder.class
 com\example\schoolwall\controller\FileUploadController.class
+com\example\schoolwall\config\WechatMiniappProperties.class
 com\example\schoolwall\common\GlobalExceptionHandler.class
 com\example\schoolwall\service\impl\AuthServiceImpl.class
 com\example\schoolwall\controller\SearchController.class
+com\example\schoolwall\dto\wechat\WxCode2SessionResult.class
 com\example\schoolwall\common\BusinessException.class
 com\example\schoolwall\service\impl\CommentServiceImpl.class
 com\example\schoolwall\dto\response\CollectResponse.class
@@ -49,6 +52,7 @@ com\example\schoolwall\dto\response\PostDetailVO.class
 com\example\schoolwall\mapper\MessageMapper.class
 com\example\schoolwall\dto\response\SearchUserVO.class
 com\example\schoolwall\controller\CommentController.class
+com\example\schoolwall\controller\UserController.class
 com\example\schoolwall\dto\response\LoginResponse$LoginResponseBuilder.class
 com\example\schoolwall\entity\CollectRecord.class
 com\example\schoolwall\security\LoginRequired.class
@@ -63,6 +67,7 @@ com\example\schoolwall\controller\MessageController.class
 com\example\schoolwall\service\UserService.class
 com\example\schoolwall\service\impl\PostServiceImpl$1.class
 com\example\schoolwall\dto\request\LoginRequest.class
+com\example\schoolwall\config\RestTemplateConfig.class
 com\example\schoolwall\dto\response\SearchContactVO.class
 com\example\schoolwall\service\SearchService.class
 com\example\schoolwall\dto\response\SearchUserVO$SearchUserVOBuilder.class
@@ -83,8 +88,10 @@ com\example\schoolwall\dto\response\PostVO$PostVOBuilder.class
 com\example\schoolwall\entity\User.class
 com\example\schoolwall\service\PostService.class
 com\example\schoolwall\dto\response\MessageVO$MessageVOBuilder.class
+com\example\schoolwall\service\WechatMiniAppService.class
 com\example\schoolwall\service\impl\UserServiceImpl.class
 com\example\schoolwall\service\CollectRecordService.class
+com\example\schoolwall\dto\response\CursorPageVO.class
 com\example\schoolwall\dto\response\CommentVO.class
 com\example\schoolwall\service\impl\LikeRecordServiceImpl.class
 com\example\schoolwall\dto\response\LikeResponse.class
@@ -93,7 +100,9 @@ com\example\schoolwall\dto\response\PostVO$PostVOBuilderImpl.class
 com\example\schoolwall\dto\response\SearchPostVO.class
 com\example\schoolwall\service\LikeRecordService.class
 com\example\schoolwall\dto\response\FollowUserVO$FollowUserVOBuilder.class
+com\example\schoolwall\dto\response\CursorPageVO$CursorPageVOBuilder.class
 com\example\schoolwall\dto\response\SearchResponse.class
 com\example\schoolwall\mapper\PostMapper.class
 com\example\schoolwall\dto\response\MessageVO.class
+com\example\schoolwall\dto\request\WxLoginRequest.class
 com\example\schoolwall\dto\response\PostVO.class

@@ -37,6 +37,7 @@ public class JwtInterceptor implements HandlerInterceptor {
      */
     private static final List<String> PUBLIC_PATHS = Arrays.asList(
             "/api/user/login",
+            "/api/user/wx-login",
             "/api/user/register",
             "/api/posts",
             "/api/search",

@@ -31,7 +31,25 @@ backend/
 └── pom.xml
 ```
 
-## 快速开始
+## Docker 部署（推荐）
+
+在项目根目录（含 `docker-compose.yml`）：
+
+```bash
+cp .env.example .env
+# 编辑 .env，设置 MYSQL_ROOT_PASSWORD、MYSQL_PASSWORD、JWT_SECRET
+
+docker compose up -d --build
+# 或: bash deploy.sh
+```
+
+- 健康检查：`http://localhost:8080/api/health`
+- 接口文档：`http://localhost:8080/doc.html`
+- 更新代码后：`docker compose up -d --build`
+
+数据持久化：`mysql_data`、`uploads_data` 两个 Docker 卷。
+
+## 快速开始（本地开发）
 
 ### 1. 环境要求
 

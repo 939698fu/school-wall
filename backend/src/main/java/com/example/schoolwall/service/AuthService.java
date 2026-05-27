@@ -2,6 +2,7 @@ package com.example.schoolwall.service;
 
 import com.example.schoolwall.dto.request.LoginRequest;
 import com.example.schoolwall.dto.request.RegisterRequest;
+import com.example.schoolwall.dto.request.WxLoginRequest;
 import com.example.schoolwall.dto.response.LoginResponse;
 
 /**
@@ -18,4 +19,9 @@ public interface AuthService {
      * 用户登录
      */
     LoginResponse login(LoginRequest request);
+
+    /**
+     * 微信小程序登录
+     */
+    LoginResponse wxLogin(WxLoginRequest request);
 }

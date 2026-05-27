@@ -21,9 +21,11 @@ E:\school_wall\backend\src\main\java\com\example\schoolwall\security\PasswordEnc
 E:\school_wall\backend\src\main\java\com\example\schoolwall\dto\response\ConversationVO.java
 E:\school_wall\backend\src\main\java\com\example\schoolwall\dto\request\PostRequest.java
 E:\school_wall\backend\src\main\java\com\example\schoolwall\mapper\FollowRecordMapper.java
+E:\school_wall\backend\src\main\java\com\example\schoolwall\dto\wechat\WxCode2SessionResult.java
 E:\school_wall\backend\src\main\java\com\example\schoolwall\service\FollowRecordService.java
 E:\school_wall\backend\src\main\java\com\example\schoolwall\service\impl\FileUploadServiceImpl.java
 E:\school_wall\backend\src\main\java\com\example\schoolwall\entity\LikeRecord.java
+E:\school_wall\backend\src\main\java\com\example\schoolwall\config\RestTemplateConfig.java
 E:\school_wall\backend\src\main\java\com\example\schoolwall\dto\response\SearchUserVO.java
 E:\school_wall\backend\src\main\java\com\example\schoolwall\controller\UserController.java
 E:\school_wall\backend\src\main\java\com\example\schoolwall\service\impl\CollectRecordServiceImpl.java
@@ -44,6 +46,8 @@ E:\school_wall\backend\src\main\java\com\example\schoolwall\service\LikeRecordSe
 E:\school_wall\backend\src\main\java\com\example\schoolwall\dto\response\SearchPostVO.java
 E:\school_wall\backend\src\main\java\com\example\schoolwall\mapper\CommentMapper.java
 E:\school_wall\backend\src\main\java\com\example\schoolwall\service\FollowService.java
+E:\school_wall\backend\src\main\java\com\example\schoolwall\service\WechatMiniAppService.java
+E:\school_wall\backend\src\main\java\com\example\schoolwall\dto\request\WxLoginRequest.java
 E:\school_wall\backend\src\main\java\com\example\schoolwall\config\FileUploadConfig.java
 E:\school_wall\backend\src\main\java\com\example\schoolwall\service\CommentService.java
 E:\school_wall\backend\src\main\java\com\example\schoolwall\security\JwtTokenUtil.java
@@ -51,6 +55,7 @@ E:\school_wall\backend\src\main\java\com\example\schoolwall\dto\response\Comment
 E:\school_wall\backend\src\main\java\com\example\schoolwall\dto\response\CollectResponse.java
 E:\school_wall\backend\src\main\java\com\example\schoolwall\config\JwtConfig.java
 E:\school_wall\backend\src\main\java\com\example\schoolwall\dto\response\MessageVO.java
+E:\school_wall\backend\src\main\java\com\example\schoolwall\config\WechatMiniappProperties.java
 E:\school_wall\backend\src\main\java\com\example\schoolwall\controller\MessageController.java
 E:\school_wall\backend\src\main\java\com\example\schoolwall\dto\response\LoginResponse.java
 E:\school_wall\backend\src\main\java\com\example\schoolwall\dto\response\UserVO.java

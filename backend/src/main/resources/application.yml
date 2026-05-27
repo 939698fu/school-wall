@@ -4,12 +4,14 @@ server:
 spring:
   application:
     name: school-wall
+  config:
+    import: optional:classpath:application-local.yml
 
   # 数据源配置
   datasource:
     url: jdbc:mysql://localhost:3306/school_wall?useSSL=false&serverTimezone=Asia/Shanghai&character_set_server=utf8mb4&allowPublicKeyRetrieval=true
     username: root
-    password: Zxc987654@
+    password: 123
     driver-class-name: com.mysql.cj.jdbc.Driver
     hikari:
       maximum-pool-size: 10
@@ -34,6 +36,12 @@ mybatis-plus:
       id-type: auto
       table-underline: true
   mapper-locations: classpath:mapper/*.xml
+
+# 微信小程序（AppSecret 请写在 application-local.yml 或环境变量 WECHAT_APP_SECRET）
+wechat:
+  miniapp:
+    app-id: ${WECHAT_APP_ID:wxec7999d3f2fb4a98}
+    app-secret: ${WECHAT_APP_SECRET:}
 
 # JWT 配置
 jwt:

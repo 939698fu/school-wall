@@ -5,6 +5,7 @@ import com.example.schoolwall.common.Result;
 import com.example.schoolwall.dto.request.LoginRequest;
 import com.example.schoolwall.dto.request.RegisterRequest;
 import com.example.schoolwall.dto.request.UpdateUserRequest;
+import com.example.schoolwall.dto.request.WxLoginRequest;
 import com.example.schoolwall.dto.response.FollowUserVO;
 import com.example.schoolwall.dto.response.LoginResponse;
 import com.example.schoolwall.dto.response.UserVO;
@@ -67,6 +68,16 @@ public class UserController {
     @Operation(summary = "用户登录", description = "用户名密码登录")
     public Result<LoginResponse> login(@Valid @RequestBody LoginRequest request) {
         LoginResponse response = authService.login(request);
+        return Result.success("登录成功", response);
+    }
+
+    /**
+     * 微信小程序登录
+     */
+    @PostMapping("/wx-login")
+    @Operation(summary = "微信登录", description = "使用 uni.login 获取的 code 登录，自动注册新用户")
+    public Result<LoginResponse> wxLogin(@Valid @RequestBody WxLoginRequest request) {
+        LoginResponse response = authService.wxLogin(request);
         return Result.success("登录成功", response);
     }
 

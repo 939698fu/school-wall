@@ -289,7 +289,7 @@ public class PostServiceImpl extends ServiceImpl<PostMapper, Post> implements Po
         if (existing != null) {
             // 取消点赞
             likeRecordMapper.deleteById(existing.getId());
-            likes = post.getLikes() - 1;
+            likes = Math.max(0, post.getLikes() - 1);
             liked = false;
         } else {
             // 添加点赞
@@ -304,7 +304,17 @@ public class PostServiceImpl extends ServiceImpl<PostMapper, Post> implements Po
         // 更新帖子点赞数
         post.setLikes(likes);
         baseMapper.updateById(post);
-        
+
+        // 同步帖子作者的获赞数（不给自己加/减）
+        if (!post.getUserId().equals(userId)) {
+            User author = userMapper.selectById(post.getUserId());
+            if (author != null) {
+                int current = author.getLikeCount() == null ? 0 : author.getLikeCount();
+                author.setLikeCount(liked ? current + 1 : Math.max(0, current - 1));
+                userMapper.updateById(author);
+            }
+        }
+
         return LikeResponse.builder()
                 .liked(liked)
                 .likes(likes)

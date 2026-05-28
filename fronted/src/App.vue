@@ -1,23 +1,30 @@
 <script setup>
 import { onLaunch, onShow, onHide } from "@dcloudio/uni-app";
 import { useUserStore } from "@/stores/user";
+import { useChatStore } from "@/stores/chat";
 
 const userStore = useUserStore();
+const chatStore = useChatStore();
+
+function refreshUnreadBadge() {
+  if (!userStore.isLoggedIn) return;
+  chatStore.fetchConversations().catch(() => {});
+}
 
 onLaunch(() => {
-  console.log("App Launch");
-  userStore.bootstrapSession().catch((error) => {
-    console.warn("Session bootstrap failed:", error?.message || error);
-  });
+  userStore
+    .bootstrapSession()
+    .then(refreshUnreadBadge)
+    .catch((error) => {
+      console.warn("Session bootstrap failed:", error?.message || error);
+    });
 });
 
 onShow(() => {
-  console.log("App Show");
+  refreshUnreadBadge();
 });
 
-onHide(() => {
-  console.log("App Hide");
-});
+onHide(() => {});
 </script>
 
 <style>

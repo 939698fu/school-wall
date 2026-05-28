@@ -15,7 +15,7 @@
           <input
             class="search-input"
             v-model="keyword"
-            placeholder="搜索联系人或聊天记录"
+            placeholder="搜索联系人"
             placeholder-class="ph-color"
             @input="onSearchInput"
           />

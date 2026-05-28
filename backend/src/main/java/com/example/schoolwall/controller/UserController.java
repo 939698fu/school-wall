@@ -157,6 +157,7 @@ public class UserController {
      */
     @PostMapping("/{userId}/follow")
     @Operation(summary = "关注用户", description = "关注指定用户")
+    @org.springframework.transaction.annotation.Transactional
     public Result<Void> follow(
             @RequestAttribute("userId") Long currentUserId,
             @PathVariable Long userId) {
@@ -165,7 +166,8 @@ public class UserController {
             throw BusinessException.badRequest("不能关注自己");
         }
 
-        if (userMapper.selectById(userId) == null) {
+        User followed = userMapper.selectById(userId);
+        if (followed == null) {
             throw BusinessException.notFound("用户不存在");
         }
 
@@ -181,6 +183,15 @@ public class UserController {
         followRecord.setFollowedId(userId);
         followRecordMapper.insert(followRecord);
 
+        // 同步统计字段
+        User follower = userMapper.selectById(currentUserId);
+        if (follower != null) {
+            follower.setFollowingCount(safeIncrement(follower.getFollowingCount()));
+            userMapper.updateById(follower);
+        }
+        followed.setFollowerCount(safeIncrement(followed.getFollowerCount()));
+        userMapper.updateById(followed);
+
         return Result.success();
     }
 
@@ -189,6 +200,7 @@ public class UserController {
      */
     @DeleteMapping("/{userId}/follow")
     @Operation(summary = "取消关注", description = "取消关注指定用户")
+    @org.springframework.transaction.annotation.Transactional
     public Result<Void> unfollow(
             @RequestAttribute("userId") Long currentUserId,
             @PathVariable Long userId) {
@@ -202,7 +214,27 @@ public class UserController {
             throw BusinessException.badRequest("未关注该用户");
         }
 
+        // 同步统计字段
+        User follower = userMapper.selectById(currentUserId);
+        if (follower != null) {
+            follower.setFollowingCount(safeDecrement(follower.getFollowingCount()));
+            userMapper.updateById(follower);
+        }
+        User followed = userMapper.selectById(userId);
+        if (followed != null) {
+            followed.setFollowerCount(safeDecrement(followed.getFollowerCount()));
+            userMapper.updateById(followed);
+        }
+
         return Result.success();
+    }
+
+    private int safeIncrement(Integer current) {
+        return (current == null ? 0 : current) + 1;
+    }
+
+    private int safeDecrement(Integer current) {
+        return Math.max(0, (current == null ? 0 : current) - 1);
     }
 
     /**

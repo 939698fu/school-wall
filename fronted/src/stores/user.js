@@ -236,6 +236,9 @@ export const useUserStore = defineStore("user", {
       this.userInfo = null;
       setToken("");
       persistUser(null);
+      try {
+        uni.removeTabBarBadge({ index: 1 });
+      } catch (e) {}
     },
   },
 });

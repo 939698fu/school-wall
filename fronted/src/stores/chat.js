@@ -1,6 +1,24 @@
 import { defineStore } from "pinia";
 import { request, upload, getFileUrl } from "@/utils/http";
 
+// 消息 tab 在 tabBar 中的 index（来自 pages.json 中的顺序：home / message / profile）
+const MESSAGE_TAB_INDEX = 1;
+
+function syncTabBarBadge(unreadTotal) {
+  try {
+    if (unreadTotal > 0) {
+      uni.setTabBarBadge({
+        index: MESSAGE_TAB_INDEX,
+        text: unreadTotal > 99 ? "99+" : String(unreadTotal),
+      });
+    } else {
+      uni.removeTabBarBadge({ index: MESSAGE_TAB_INDEX });
+    }
+  } catch (e) {
+    // 非 tabBar 页面调用可能报错，忽略即可
+  }
+}
+
 function normalizeConversation(raw = {}) {
   return {
     id: raw.id || raw.userId,
@@ -51,6 +69,7 @@ export const useChatStore = defineStore("chat", {
       const index = this.conversations.findIndex(
         (item) => Number(item.userId) === Number(normalized.userId),
       );
+      let result;
       if (index >= 0) {
         const next = {
           ...this.conversations[index],
@@ -58,18 +77,31 @@ export const useChatStore = defineStore("chat", {
         };
         this.conversations.splice(index, 1);
         this.conversations.unshift(next);
-        return next;
+        result = next;
       } else {
         this.conversations.unshift(normalized);
+        result = normalized;
       }
-      return normalized;
+      this._refreshBadge();
+      return result;
     },
     async fetchConversations() {
       const data = await request({
         url: "/api/messages/conversations",
       });
       this.conversations = data.map((item) => normalizeConversation(item));
+      this._refreshBadge();
       return this.conversations;
+    },
+    _refreshBadge() {
+      const total = this.conversations.reduce(
+        (sum, conv) => sum + (Number(conv.unread) || 0),
+        0,
+      );
+      syncTabBarBadge(total);
+    },
+    clearBadge() {
+      syncTabBarBadge(0);
     },
     async searchContacts(keyword) {
       const trimmed = String(keyword || "").trim();
@@ -161,6 +193,7 @@ export const useChatStore = defineStore("chat", {
       if (conversation) {
         conversation.unread = 0;
       }
+      this._refreshBadge();
     },
     clearMessages(userId) {
       this.messagesByUserId[userId] = [];

@@ -152,7 +152,12 @@ public class MessageServiceImpl extends ServiceImpl<MessageMapper, Message> impl
         Message message = new Message();
         message.setFromId(userId);
         message.setToId(request.getToId());
-        message.setContent(request.getContent());
+        // content 在 DB 是 NOT NULL；图片消息给个占位文案，避免 SQL 异常
+        String content = request.getContent();
+        if (content == null) {
+            content = "image".equals(type) ? "[图片]" : "";
+        }
+        message.setContent(content);
         message.setType(type);
         message.setFileUrl(request.getFileUrl());
         message.setIsRead(0);

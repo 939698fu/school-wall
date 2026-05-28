@@ -110,8 +110,28 @@
       <view v-if="inputText.trim()" class="send-btn-active" @tap="sendMsg">
         <text>发送</text>
       </view>
-      <view v-else class="input-emoji-btn" @tap="showEmoji">
+      <view
+        v-else
+        class="input-emoji-btn"
+        :class="{ 'input-emoji-btn-active': showEmojiPanel }"
+        @tap="toggleEmojiPanel"
+      >
         <text class="icon">😊</text>
+      </view>
+    </view>
+
+    <!-- emoji 面板 -->
+    <view v-if="showEmojiPanel" class="emoji-panel">
+      <view
+        v-for="(emo, i) in emojiList"
+        :key="i"
+        class="emoji-item"
+        @tap="appendEmoji(emo)"
+      >
+        <text>{{ emo }}</text>
+      </view>
+      <view class="emoji-item emoji-backspace" @tap="deleteLastChar">
+        <text>⌫</text>
       </view>
     </view>
   </view>
@@ -131,9 +151,19 @@ const userStore = useUserStore();
 const myAvatar = computed(() => userStore.userInfo?.avatar || "🙂");
 
 const keyboardHeight = ref(0);
+const showEmojiPanel = ref(false);
+
+const emojiList = [
+  "😀", "😁", "😂", "🤣", "😊", "😍", "😘", "😎",
+  "🤩", "🥰", "😅", "😉", "😋", "😜", "🤔", "😏",
+  "😴", "😭", "😤", "😡", "🥺", "😱", "🤗", "🙏",
+  "👍", "👎", "👌", "✌️", "🤝", "💪", "👏", "🙌",
+  "❤️", "💔", "🔥", "🎉", "✨", "🌟", "💯", "🤡",
+];
 
 function onInputFocus(e) {
-  // 部分平台可以通过 focus 事件获取键盘高度
+  // 键盘弹出时关闭 emoji 面板
+  showEmojiPanel.value = false;
   if (e.detail.height) {
     keyboardHeight.value = e.detail.height;
   }
@@ -149,6 +179,28 @@ function onKeyboardHeightChange(e) {
   if (keyboardHeight.value > 0) {
     scrollToBottom();
   }
+}
+
+function toggleEmojiPanel() {
+  showEmojiPanel.value = !showEmojiPanel.value;
+  if (showEmojiPanel.value) {
+    keyboardHeight.value = 0;
+    uni.hideKeyboard && uni.hideKeyboard();
+  }
+}
+
+function appendEmoji(emo) {
+  if ((inputText.value || "").length >= 500) return;
+  inputText.value = (inputText.value || "") + emo;
+}
+
+function deleteLastChar() {
+  const text = inputText.value || "";
+  if (!text) return;
+  // 用 Array.from 处理 emoji 等多字节字符，删除最后一个"字形"
+  const arr = Array.from(text);
+  arr.pop();
+  inputText.value = arr.join("");
 }
 
 onLoad((options) => {
@@ -243,10 +295,6 @@ function toggleExtra() {
       }
     },
   });
-}
-
-function showEmoji() {
-  uni.showToast({ title: "emoji 开发中", icon: "none" });
 }
 
 function chooseSingleImage() {
@@ -566,5 +614,41 @@ function showError(error) {
 .send-btn-active:active {
   opacity: 0.8;
   transform: scale(0.95);
+}
+
+/* emoji 面板 */
+.input-emoji-btn-active {
+  background: var(--primary-light, #fff0ec);
+}
+
+.emoji-panel {
+  background: #ffffff;
+  border-top: 1rpx solid #eeeeee;
+  padding: 24rpx 16rpx 32rpx;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8rpx;
+  flex-shrink: 0;
+  max-height: 480rpx;
+  overflow-y: auto;
+}
+
+.emoji-item {
+  width: calc((100% - 56rpx) / 8);
+  height: 88rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 44rpx;
+  border-radius: 12rpx;
+}
+
+.emoji-item:active {
+  background: #f5f5f5;
+}
+
+.emoji-backspace {
+  font-size: 36rpx;
+  color: var(--text-sub);
 }
 </style>

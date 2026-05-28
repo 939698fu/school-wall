@@ -45,6 +45,10 @@ public class MessageServiceImpl extends ServiceImpl<MessageMapper, Message> impl
 
         List<Message> messages = baseMapper.selectList(wrapper);
 
+        if (messages.isEmpty()) {
+            return Collections.emptyList();
+        }
+
         Map<Long, Message> lastMessages = new HashMap<>();
         Map<Long, Integer> unreadCounts = new HashMap<>();
 
@@ -62,6 +66,9 @@ public class MessageServiceImpl extends ServiceImpl<MessageMapper, Message> impl
         }
 
         List<Long> targetUserIds = new ArrayList<>(lastMessages.keySet());
+        if (targetUserIds.isEmpty()) {
+            return Collections.emptyList();
+        }
         List<User> users = userMapper.selectBatchIds(targetUserIds);
         Map<Long, User> userMap = users.stream()
                 .collect(Collectors.toMap(User::getId, user -> user));

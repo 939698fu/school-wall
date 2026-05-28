@@ -23,9 +23,10 @@ file:
 logging:
   level:
     root: INFO
-    com.example.schoolwall: INFO
+    com.example.schoolwall: DEBUG
+    com.example.schoolwall.mapper: DEBUG
     com.baomidou.mybatisplus: WARN
 
 mybatis-plus:
   configuration:
-    log-impl: org.apache.ibatis.logging.nologging.NoLoggingImpl
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl

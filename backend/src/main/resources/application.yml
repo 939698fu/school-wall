@@ -41,7 +41,7 @@ mybatis-plus:
 wechat:
   miniapp:
     app-id: ${WECHAT_APP_ID:wxec7999d3f2fb4a98}
-    app-secret: ${WECHAT_APP_SECRET:}
+    app-secret: ${WECHAT_APP_SECRET:6273a186f73b50861b07cfe418154f7c}
 
 # JWT 配置
 jwt:

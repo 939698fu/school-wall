@@ -14,58 +14,100 @@
           <text class="search-icon">🔍</text>
           <input
             class="search-input"
+            v-model="keyword"
             placeholder="搜索联系人或聊天记录"
             placeholder-class="ph-color"
+            @input="onSearchInput"
           />
+          <text v-if="keyword" class="clear-icon" @tap="clearKeyword">✕</text>
+        </view>
+      </view>
+
+      <!-- 搜索结果 -->
+      <view v-if="isSearchMode">
+        <view v-if="searching" class="empty-tip">
+          <text>搜索中...</text>
+        </view>
+        <view v-else-if="searchResults.length" class="conv-list">
+          <view
+            v-for="item in searchResults"
+            :key="`s-${item.userId}`"
+            class="conv-item"
+            hover-class="conv-item-hover"
+            @tap="goChat(item)"
+          >
+            <view class="conv-avatar-wrap">
+              <image
+                v-if="String(item.avatar).includes('/')"
+                :src="item.avatar"
+                class="conv-avatar"
+                mode="aspectFill"
+              />
+              <view v-else class="conv-avatar">{{ item.avatar }}</view>
+            </view>
+            <view class="conv-info">
+              <view class="conv-top">
+                <text class="conv-name">{{ item.name }}</text>
+              </view>
+              <view class="conv-bottom">
+                <text class="conv-last-msg">{{ item.lastMsg || "暂无聊天记录" }}</text>
+              </view>
+            </view>
+          </view>
+        </view>
+        <view v-else class="empty-tip">
+          <text>没有找到相关联系人</text>
         </view>
       </view>
 
       <!-- 会话列表 -->
-      <view class="conv-list">
-        <view
-          v-for="conv in conversations"
-          :key="conv.id"
-          class="conv-item"
-          hover-class="conv-item-hover"
-          @tap="goChat(conv)"
-        >
-          <view class="conv-avatar-wrap">
-            <image
-              v-if="String(conv.avatar).includes('/')"
-              :src="conv.avatar"
-              class="conv-avatar"
-              mode="aspectFill"
-            />
-            <view v-else class="conv-avatar">{{ conv.avatar }}</view>
-            <view v-if="conv.unread > 0" class="unread-badge">{{
-              conv.unread > 99 ? "99+" : conv.unread
-            }}</view>
-          </view>
-          <view class="conv-info">
-            <view class="conv-top">
-              <text class="conv-name">{{ conv.name }}</text>
-              <text class="conv-time">{{ conv.lastTime }}</text>
+      <view v-else>
+        <view class="conv-list">
+          <view
+            v-for="conv in conversations"
+            :key="conv.id"
+            class="conv-item"
+            hover-class="conv-item-hover"
+            @tap="goChat(conv)"
+          >
+            <view class="conv-avatar-wrap">
+              <image
+                v-if="String(conv.avatar).includes('/')"
+                :src="conv.avatar"
+                class="conv-avatar"
+                mode="aspectFill"
+              />
+              <view v-else class="conv-avatar">{{ conv.avatar }}</view>
+              <view v-if="conv.unread > 0" class="unread-badge">{{
+                conv.unread > 99 ? "99+" : conv.unread
+              }}</view>
             </view>
-            <view class="conv-bottom">
-              <text
-                class="conv-last-msg"
-                :class="{ unread: conv.unread > 0 }"
-                >{{ conv.lastMsg }}</text
-              >
+            <view class="conv-info">
+              <view class="conv-top">
+                <text class="conv-name">{{ conv.name }}</text>
+                <text class="conv-time">{{ conv.lastTime }}</text>
+              </view>
+              <view class="conv-bottom">
+                <text
+                  class="conv-last-msg"
+                  :class="{ unread: conv.unread > 0 }"
+                  >{{ conv.lastMsg }}</text
+                >
+              </view>
             </view>
           </view>
         </view>
-      </view>
 
-      <view class="list-tip">
-        <text class="list-tip-text">— 仅展示最近 30 天的私信 —</text>
+        <view class="list-tip">
+          <text class="list-tip-text">— 仅展示最近 30 天的私信 —</text>
+        </view>
       </view>
     </scroll-view>
   </view>
 </template>
 
 <script setup>
-import { computed } from "vue";
+import { computed, ref } from "vue";
 import { onShow, onLoad } from "@dcloudio/uni-app";
 import { useChatStore } from "@/stores/chat";
 import { useUserStore } from "@/stores/user";
@@ -74,8 +116,14 @@ const chatStore = useChatStore();
 const userStore = useUserStore();
 const conversations = computed(() => chatStore.conversationList);
 
-onLoad(() => {
-});
+const keyword = ref("");
+const searching = ref(false);
+const searchResults = ref([]);
+const isSearchMode = computed(() => keyword.value.trim().length > 0);
+
+let searchTimer = null;
+
+onLoad(() => {});
 
 onShow(() => {
   if (!userStore.isLoggedIn) {
@@ -86,8 +134,38 @@ onShow(() => {
   });
 });
 
+function onSearchInput() {
+  if (searchTimer) clearTimeout(searchTimer);
+  const word = keyword.value.trim();
+  if (!word) {
+    searchResults.value = [];
+    searching.value = false;
+    return;
+  }
+  searching.value = true;
+  searchTimer = setTimeout(async () => {
+    try {
+      searchResults.value = await chatStore.searchContacts(word);
+    } catch (error) {
+      uni.showToast({ title: error?.message || "搜索失败", icon: "none" });
+      searchResults.value = [];
+    } finally {
+      searching.value = false;
+    }
+  }, 300);
+}
+
+function clearKeyword() {
+  keyword.value = "";
+  searchResults.value = [];
+  searching.value = false;
+  if (searchTimer) clearTimeout(searchTimer);
+}
+
 function goChat(conv) {
-  chatStore.markRead(conv.userId).catch(() => {});
+  if (conv.unread > 0) {
+    chatStore.markRead(conv.userId).catch(() => {});
+  }
   uni.navigateTo({
     url: `/pages/message/chat?userId=${conv.userId}&name=${encodeURIComponent(conv.name)}&avatar=${encodeURIComponent(conv.avatar)}`,
   });
@@ -169,8 +247,21 @@ function newChat() {
   color: var(--text-main);
 }
 
+.clear-icon {
+  font-size: 28rpx;
+  color: var(--text-hint);
+  padding: 10rpx;
+}
+
 .ph-color {
   color: var(--text-hint);
+}
+
+.empty-tip {
+  padding: 80rpx 0;
+  text-align: center;
+  color: var(--text-hint);
+  font-size: 28rpx;
 }
 
 /* 会话列表 */

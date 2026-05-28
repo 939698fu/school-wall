@@ -28,7 +28,12 @@
             }}</text>
             <text class="author-time">{{ post.fullTime }}</text>
           </view>
-          <view class="follow-btn" @tap="onFollow">+ 关注</view>
+          <view
+            v-if="showFollowBtn"
+            class="follow-btn"
+            :class="{ 'follow-btn-active': authorIsFollowed }"
+            @tap="onFollow"
+          >{{ authorIsFollowed ? "已关注" : "+ 关注" }}</view>
         </view>
 
         <!-- 正文 -->
@@ -96,6 +101,11 @@
               <view class="comment-name-row">
                 <text class="comment-name">{{ comment.author }}</text>
                 <text v-if="comment.isAuthor" class="author-badge">楼主</text>
+                <text
+                  v-if="canDeleteComment(comment)"
+                  class="comment-del"
+                  @tap.stop="onDeleteComment(comment)"
+                >删除</text>
               </view>
               <ParsedPostText
                 class="comment-text"
@@ -124,6 +134,9 @@
         <text>加载中...</text>
       </view>
     </scroll-view>
+
+    <!-- 浮动更多按钮 -->
+    <view v-if="post" class="float-more-btn" @tap="showMore">⋯</view>
 
     <!-- 底部操作栏 -->
     <view class="action-bar safe-area-bottom" v-if="post">
@@ -197,14 +210,17 @@ import ParsedPostText from "@/components/ParsedPostText.vue";
 const postsStore = usePostsStore();
 const userStore = useUserStore();
 
-// 使用响应式的 postId
 const postId = ref(0);
+const followLoading = ref(false);
 
-// ✅ 在 onLoad 中安全地获取路由参数
 onLoad((options) => {
   if (options.id) {
     postId.value = Number(options.id);
-    postsStore.fetchPostDetail(postId.value).catch(showError);
+    postsStore.fetchPostDetail(postId.value).then((p) => {
+      if (p?.authorId && !p.isAnon) {
+        userStore.fetchUserById(p.authorId).catch(() => {});
+      }
+    }).catch(showError);
   }
 });
 
@@ -214,8 +230,19 @@ onShow(() => {
   }
 });
 
-// 让 post 依赖响应式的 postId.value
 const post = computed(() => postsStore.getPostById(postId.value));
+
+// 是否显示关注按钮：非匿名、非自己
+const showFollowBtn = computed(() => {
+  if (!post.value || post.value.isAnon || !post.value.authorId) return false;
+  return Number(post.value.authorId) !== Number(userStore.userInfo?.id);
+});
+
+// 当前作者的关注状态（从 store 缓存里读，fetchUserById 会写入）
+const authorIsFollowed = computed(() => {
+  if (!post.value?.authorId) return false;
+  return userStore.getUserById(post.value.authorId)?.isFollowed === true;
+});
 
 const showCommentInput = ref(false);
 const commentText = ref("");
@@ -224,13 +251,71 @@ function goBack() {
   uni.navigateBack();
 }
 
+const isOwnPost = computed(() => {
+  if (!post.value) return false;
+  return Number(post.value.authorId) === Number(userStore.userInfo?.id);
+});
+
+function canDeleteComment(comment) {
+  const myId = Number(userStore.userInfo?.id);
+  if (!myId) return false;
+  if (Number(comment.userId || comment.authorId) === myId) return true;
+  return isOwnPost.value;
+}
+
 function showMore() {
+  const itemList = isOwnPost.value
+    ? ["复制链接", "删除帖子"]
+    : ["复制链接", "举报", "不感兴趣"];
   uni.showActionSheet({
-    itemList: ["复制链接", "举报", "不感兴趣"],
+    itemList,
     success: ({ tapIndex }) => {
-      if (tapIndex === 0) uni.showToast({ title: "链接已复制", icon: "none" });
-      if (tapIndex === 1)
-        uni.showToast({ title: "已举报，感谢反馈", icon: "none" });
+      if (isOwnPost.value) {
+        if (tapIndex === 0) uni.showToast({ title: "链接已复制", icon: "none" });
+        if (tapIndex === 1) confirmDeletePost();
+      } else {
+        if (tapIndex === 0) uni.showToast({ title: "链接已复制", icon: "none" });
+        if (tapIndex === 1)
+          uni.showToast({ title: "已举报，感谢反馈", icon: "none" });
+      }
+    },
+  });
+}
+
+function confirmDeletePost() {
+  uni.showModal({
+    title: "提示",
+    content: "确定删除该帖子吗？删除后无法恢复",
+    confirmColor: "#ff4d4f",
+    success: ({ confirm }) => {
+      if (confirm) doDeletePost();
+    },
+  });
+}
+
+async function doDeletePost() {
+  try {
+    await postsStore.deletePost(postId.value);
+    uni.showToast({ title: "已删除", icon: "success" });
+    setTimeout(() => uni.navigateBack(), 600);
+  } catch (error) {
+    showError(error);
+  }
+}
+
+function onDeleteComment(comment) {
+  uni.showModal({
+    title: "提示",
+    content: "确定删除该评论吗？",
+    confirmColor: "#ff4d4f",
+    success: async ({ confirm }) => {
+      if (!confirm) return;
+      try {
+        await postsStore.deleteComment(comment.id, postId.value);
+        uni.showToast({ title: "已删除", icon: "success" });
+      } catch (error) {
+        showError(error);
+      }
     },
   });
 }
@@ -255,8 +340,26 @@ function onShare() {
   uni.showToast({ title: "分享功能开发中", icon: "none" });
 }
 
-function onFollow() {
-  uni.showToast({ title: "已关注", icon: "success" });
+async function onFollow() {
+  if (!userStore.isLoggedIn) {
+    uni.showToast({ title: "请先登录", icon: "none" });
+    return;
+  }
+  if (followLoading.value) return;
+  followLoading.value = true;
+  try {
+    if (authorIsFollowed.value) {
+      await userStore.unfollowUser(post.value.authorId);
+      uni.showToast({ title: "已取消关注", icon: "none" });
+    } else {
+      await userStore.followUser(post.value.authorId);
+      uni.showToast({ title: "关注成功", icon: "success" });
+    }
+  } catch (error) {
+    showError(error);
+  } finally {
+    followLoading.value = false;
+  }
 }
 
 function goAuthorProfile() {
@@ -478,6 +581,11 @@ function showError(error) {
   border: 1rpx solid var(--primary);
   border-radius: 100rpx;
   padding: 6rpx 22rpx;
+  transition: all 0.2s;
+}
+.follow-btn-active {
+  background: var(--primary);
+  color: #ffffff;
 }
 
 /* 正文 */
@@ -610,6 +718,30 @@ function showError(error) {
   color: #fff;
   border-radius: 6rpx;
   padding: 2rpx 8rpx;
+}
+
+.comment-del {
+  margin-left: auto;
+  font-size: 22rpx;
+  color: #ff4d4f;
+  padding: 4rpx 12rpx;
+}
+
+.float-more-btn {
+  position: fixed;
+  top: calc(var(--status-bar-height, 44px) + 20rpx);
+  right: 24rpx;
+  width: 64rpx;
+  height: 64rpx;
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 50%;
+  box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.12);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 40rpx;
+  color: var(--text-sub);
+  z-index: 200;
 }
 
 .comment-text {

@@ -24,15 +24,53 @@
 
     <!-- 下部分：登录操作区 -->
     <view class="login-bottom">
-      <button
-        class="wx-login-btn"
-        :loading="loading"
-        :disabled="loading"
-        @tap="handleWxLogin"
-      >
-        <text v-if="!loading">微信一键登录</text>
-        <text v-else>登录中...</text>
-      </button>
+      <!-- 账号密码登录区 -->
+      <view v-if="mode === 'password'" class="pwd-form">
+        <input
+          class="pwd-input"
+          v-model.trim="username"
+          placeholder="用户名"
+          :maxlength="20"
+        />
+        <input
+          class="pwd-input"
+          v-model="password"
+          password
+          placeholder="密码"
+          :maxlength="32"
+        />
+        <button
+          class="primary-btn"
+          :loading="loading"
+          :disabled="loading || !username || !password"
+          @tap="handlePwdLogin"
+        >
+          <text v-if="!loading">登录</text>
+          <text v-else>登录中...</text>
+        </button>
+        <view class="switch-row">
+          <text class="link-text" @tap="goRegister">没有账号？去注册</text>
+          <text class="link-text" @tap="mode = 'wechat'">微信登录</text>
+        </view>
+      </view>
+
+      <!-- 微信登录区 -->
+      <view v-else class="wx-form">
+        <button
+          class="wx-login-btn"
+          :loading="loading"
+          :disabled="loading"
+          @tap="handleWxLogin"
+        >
+          <text v-if="!loading">微信一键登录</text>
+          <text v-else>登录中...</text>
+        </button>
+
+        <view class="switch-row">
+          <text class="link-text" @tap="mode = 'password'">账号密码登录</text>
+          <text class="link-text" @tap="goRegister">注册新账号</text>
+        </view>
+      </view>
 
       <text class="login-tip"> 登录即代表同意《用户协议》和《隐私政策》 </text>
       <text class="login-tip school-tip">仅本校学生可使用本应用</text>
@@ -46,6 +84,9 @@ import { useUserStore } from "@/stores/user";
 
 const userStore = useUserStore();
 const loading = ref(false);
+const mode = ref("wechat");
+const username = ref("");
+const password = ref("");
 
 async function handleWxLogin() {
   if (loading.value) return;
@@ -58,6 +99,30 @@ async function handleWxLogin() {
   } finally {
     loading.value = false;
   }
+}
+
+async function handlePwdLogin() {
+  if (loading.value) return;
+  if (!username.value || !password.value) {
+    uni.showToast({ title: "请输入用户名和密码", icon: "none" });
+    return;
+  }
+  loading.value = true;
+  try {
+    await userStore.loginWithUsername({
+      username: username.value,
+      password: password.value,
+    });
+    uni.switchTab({ url: "/pages/home/index" });
+  } catch (e) {
+    uni.showToast({ title: e?.message || "登录失败，请重试", icon: "none" });
+  } finally {
+    loading.value = false;
+  }
+}
+
+function goRegister() {
+  uni.navigateTo({ url: "/pages/register/index" });
 }
 </script>
 
@@ -140,6 +205,62 @@ async function handleWxLogin() {
   flex-direction: column;
   align-items: center;
   gap: 20rpx;
+}
+
+.pwd-form,
+.wx-form {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 20rpx;
+}
+
+.pwd-input {
+  width: 100%;
+  height: 88rpx;
+  padding: 0 28rpx;
+  border-radius: 16rpx;
+  background: var(--bg);
+  font-size: 30rpx;
+  color: var(--text-main);
+  box-sizing: border-box;
+}
+
+.primary-btn {
+  width: 100%;
+  height: 96rpx;
+  background: var(--primary) !important;
+  color: #ffffff !important;
+  border-radius: 200rpx !important;
+  font-size: 32rpx !important;
+  font-weight: 600 !important;
+  border: none !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  letter-spacing: 2rpx;
+}
+
+.primary-btn[disabled] {
+  background: #f0c2b3 !important;
+  color: #ffffff !important;
+}
+
+.primary-btn::after {
+  border: none;
+}
+
+.switch-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8rpx 4rpx;
+}
+
+.link-text {
+  font-size: 26rpx;
+  color: var(--primary);
+  font-weight: 500;
 }
 
 .wx-login-btn {

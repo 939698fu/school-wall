@@ -1,4 +1,4 @@
-const DEFAULT_BASE_URL = "http://localhost:8080";
+const DEFAULT_BASE_URL = "http://120.26.60.104:8080";
 const TOKEN_KEY = "school_wall_token";
 
 function getBaseUrl() {

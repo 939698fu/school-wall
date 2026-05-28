@@ -1,5 +1,26 @@
-target/
+# JetBrains / IDE
 .idea/
 *.iml
+.mybatis/
+
+# Maven / 后端构建产物
+target/
+backend/target/
 logs/
+
+# 后端敏感配置
 .env
+application-local.yml
+
+# 后端运行时上传文件
+uploads/
+
+# 前端构建产物 / 依赖
+node_modules/
+**/dist/
+
+# 历史残留前端目录（前端已迁至 fronted/）
+school-wall/
+
+# 编辑器工作区文件
+*.code-workspace

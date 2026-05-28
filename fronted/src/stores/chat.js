@@ -71,6 +71,15 @@ export const useChatStore = defineStore("chat", {
       this.conversations = data.map((item) => normalizeConversation(item));
       return this.conversations;
     },
+    async searchContacts(keyword) {
+      const trimmed = String(keyword || "").trim();
+      if (!trimmed) return [];
+      const data = await request({
+        url: "/api/messages/search",
+        data: { keyword: trimmed },
+      });
+      return (data || []).map((item) => normalizeConversation(item));
+    },
     async fetchChatHistory(targetUserId, currentUserId) {
       const data = await request({
         url: `/api/messages/chat/${targetUserId}`,

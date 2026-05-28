@@ -16,16 +16,49 @@
         <view class="form-divider"></view>
 
         <!-- 正文输入 -->
-        <view class="form-item">
+        <view class="form-item content-form-item">
           <textarea
             class="content-input"
             v-model="content"
             placeholder="分享你的故事、问题或想法...（支持 @ 同学，# 话题标签）"
+            :cursor-spacing="200"
+            @input="onContentInput"
+            @blur="onContentBlur"
           />
           <text class="content-tip"
             >输入如 @数学学长 或 #期末复习，发布后可直接点击跳转</text
           >
           <text class="word-count">{{ content.length }}/2000</text>
+
+          <!-- @ 联想下拉 -->
+          <view v-if="mentionVisible" class="mention-panel">
+            <view v-if="mentionLoading" class="mention-empty">
+              <text>搜索中...</text>
+            </view>
+            <view v-else-if="!mentionList.length" class="mention-empty">
+              <text>没有找到「{{ mentionKeyword }}」</text>
+            </view>
+            <view v-else>
+              <view
+                v-for="user in mentionList"
+                :key="user.id"
+                class="mention-item"
+                @tap="pickMention(user)"
+              >
+                <image
+                  v-if="String(user.avatar).includes('/')"
+                  :src="user.avatar"
+                  class="mention-avatar"
+                  mode="aspectFill"
+                />
+                <view v-else class="mention-avatar">{{ user.avatar }}</view>
+                <view class="mention-info">
+                  <text class="mention-name">{{ user.nickname }}</text>
+                  <text class="mention-school">{{ user.school || "" }}</text>
+                </view>
+              </view>
+            </view>
+          </view>
         </view>
 
         <!-- 图片上传 & 发布按钮 -->
@@ -122,6 +155,14 @@ const isAnon = ref(false);
 const onlyMe = ref(false);
 const publishing = ref(false);
 
+const mentionVisible = ref(false);
+const mentionLoading = ref(false);
+const mentionList = ref([]);
+const mentionKeyword = ref("");
+const mentionStart = ref(-1);
+const mentionCursor = ref(0);
+let mentionTimer = null;
+
 const availableTags = [
   { value: "orange", label: "🍜 美食" },
   { value: "blue", label: "📚 学习" },
@@ -139,6 +180,71 @@ const canPublish = computed(
     title.value.trim().length >= 2 &&
     content.value.trim().length >= 10,
 );
+
+function onContentInput(e) {
+  const value = e?.detail?.value ?? content.value;
+  const cursor = typeof e?.detail?.cursor === "number"
+    ? e.detail.cursor
+    : value.length;
+  detectMention(value, cursor);
+}
+
+function onContentBlur() {
+  // 失焦后延迟隐藏，避免点击联想项时下拉先消失
+  setTimeout(() => {
+    mentionVisible.value = false;
+  }, 200);
+}
+
+function detectMention(value, cursor) {
+  mentionCursor.value = cursor;
+  const before = value.slice(0, cursor);
+  const atIndex = before.lastIndexOf("@");
+  if (atIndex < 0) {
+    closeMention();
+    return;
+  }
+  const segment = before.slice(atIndex + 1);
+  // @ 后面不能含空格/换行；超过 20 字符放弃
+  if (/[\s\r\n]/.test(segment) || segment.length > 20) {
+    closeMention();
+    return;
+  }
+  mentionStart.value = atIndex;
+  mentionKeyword.value = segment;
+  mentionVisible.value = true;
+  triggerMentionSearch(segment);
+}
+
+function triggerMentionSearch(keyword) {
+  if (mentionTimer) clearTimeout(mentionTimer);
+  mentionLoading.value = true;
+  mentionTimer = setTimeout(async () => {
+    try {
+      mentionList.value = await postsStore.fetchMentionedUsers(keyword);
+    } catch (error) {
+      mentionList.value = [];
+    } finally {
+      mentionLoading.value = false;
+    }
+  }, 250);
+}
+
+function pickMention(user) {
+  const before = content.value.slice(0, mentionStart.value);
+  const after = content.value.slice(mentionCursor.value);
+  const insert = `@${user.nickname} `;
+  content.value = before + insert + after;
+  closeMention();
+}
+
+function closeMention() {
+  mentionVisible.value = false;
+  mentionList.value = [];
+  mentionKeyword.value = "";
+  mentionStart.value = -1;
+  if (mentionTimer) clearTimeout(mentionTimer);
+}
 
 function chooseImg() {
   uni.chooseImage({
@@ -286,6 +392,74 @@ async function onPublish() {
   position: absolute;
   bottom: 20rpx;
   right: 32rpx;
+}
+
+.content-form-item {
+  position: relative;
+}
+
+.mention-panel {
+  position: absolute;
+  left: 24rpx;
+  right: 24rpx;
+  bottom: 56rpx;
+  background: #ffffff;
+  border-radius: 16rpx;
+  box-shadow: 0 8rpx 24rpx rgba(0, 0, 0, 0.12);
+  border: 1rpx solid var(--border);
+  max-height: 480rpx;
+  overflow-y: auto;
+  z-index: 50;
+}
+
+.mention-empty {
+  padding: 28rpx 24rpx;
+  font-size: 26rpx;
+  color: var(--text-hint);
+  text-align: center;
+}
+
+.mention-item {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+  padding: 20rpx 24rpx;
+  border-bottom: 1rpx solid #f5f5f5;
+}
+
+.mention-item:last-child {
+  border-bottom: none;
+}
+
+.mention-avatar {
+  width: 64rpx;
+  height: 64rpx;
+  border-radius: 50%;
+  background: #f5f5f0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 32rpx;
+  flex-shrink: 0;
+}
+
+.mention-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4rpx;
+  min-width: 0;
+}
+
+.mention-name {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: var(--text-main);
+}
+
+.mention-school {
+  font-size: 22rpx;
+  color: var(--text-hint);
 }
 
 /* 图片上传 & 发布按钮 */

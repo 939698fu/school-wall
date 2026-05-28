@@ -15,6 +15,13 @@
       }
     },
     {
+      "path": "pages/register/index",
+      "style": {
+        "navigationBarTitleText": "注册",
+        "navigationStyle": "custom"
+      }
+    },
+    {
       "path": "pages/home/index",
       "style": {
         "navigationBarTitleText": "校园墙",
@@ -50,6 +57,10 @@
     {
       "path": "pages/user-profile/index",
       "style": { "navigationBarTitleText": "TA 的主页" }
+    },
+    {
+      "path": "pages/user-fans/index",
+      "style": { "navigationBarTitleText": "关注与粉丝" }
     }
   ],
   "tabBar": {

@@ -55,6 +55,7 @@ export const usePostsStore = defineStore("posts", {
     myPosts: [],
     myCollections: [],
     userPostsMap: {},
+    hotTags: [],
     loading: false,
   }),
   getters: {
@@ -283,6 +284,80 @@ export const usePostsStore = defineStore("posts", {
         this.detailMap[post.id] = { ...(this.detailMap[post.id] || {}), ...post };
       });
       return records;
+    },
+    async deletePost(postId) {
+      await request({
+        url: `/api/posts/${postId}`,
+        method: "DELETE",
+      });
+      const id = Number(postId);
+      Object.keys(this.tabs).forEach((tabKey) => {
+        this.tabs[tabKey].records = this.tabs[tabKey].records.filter(
+          (item) => Number(item.id) !== id,
+        );
+        if (this.tabs[tabKey].total > 0) {
+          this.tabs[tabKey].total = Math.max(0, this.tabs[tabKey].total - 1);
+        }
+      });
+      this.myPosts = this.myPosts.filter((item) => Number(item.id) !== id);
+      this.myCollections = this.myCollections.filter((item) => Number(item.id) !== id);
+      Object.keys(this.userPostsMap).forEach((userId) => {
+        this.userPostsMap[userId] = this.userPostsMap[userId].filter(
+          (item) => Number(item.id) !== id,
+        );
+      });
+      delete this.detailMap[id];
+    },
+    async deleteComment(commentId, postId) {
+      await request({
+        url: `/api/comments/${commentId}`,
+        method: "DELETE",
+      });
+      if (postId) {
+        return this.fetchPostDetail(postId);
+      }
+      return null;
+    },
+    async fetchMentionedUsers(keyword) {
+      const trimmed = String(keyword || "").trim();
+      const data = await request({
+        url: "/api/posts/mentioned",
+        data: { keyword: trimmed },
+      });
+      return (data || []).map((item) => ({
+        ...item,
+        avatar: getFileUrl(item.avatar) || "👤",
+      }));
+    },
+    async fetchHotTags(limit = 10) {
+      const data = await request({
+        url: "/api/posts/tags",
+        data: { limit },
+        useAuth: false,
+      });
+      this.hotTags = Array.isArray(data) ? data : [];
+      return this.hotTags;
+    },
+    async searchFromServer(keyword, { page = 1, size = 20 } = {}) {
+      const trimmed = String(keyword || "").trim();
+      if (!trimmed) {
+        return { posts: [], users: [], postTotal: 0, userTotal: 0 };
+      }
+      const result = await request({
+        url: "/api/search",
+        data: { keyword: trimmed, page, size },
+      });
+      const posts = (result?.posts || []).map((item) => normalizePost(item));
+      const users = (result?.users || []).map((item) => ({
+        ...item,
+        avatar: getFileUrl(item.avatar) || "👤",
+      }));
+      return {
+        posts,
+        users,
+        postTotal: Number(result?.postTotal || posts.length),
+        userTotal: Number(result?.userTotal || users.length),
+      };
     },
     async likeComment(comment) {
       const result = await request({

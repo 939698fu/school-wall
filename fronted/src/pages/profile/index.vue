@@ -36,17 +36,20 @@
             <text class="stat-label">帖子</text>
           </view>
           <view class="stat-divider"></view>
+          <view class="stat-item" @tap="goFans('following')">
+            <text class="stat-num">{{ displayUser.followingCount || 0 }}</text>
+            <text class="stat-label">关注</text>
+          </view>
+          <view class="stat-divider"></view>
+          <view class="stat-item" @tap="goFans('followers')">
+            <text class="stat-num">{{ displayUser.followerCount || 0 }}</text>
+            <text class="stat-label">粉丝</text>
+          </view>
+          <view class="stat-divider"></view>
           <view class="stat-item">
             <text class="stat-num">{{ displayLikeCount }}</text>
             <text class="stat-label">获赞</text>
           </view>
-          <template v-if="isOwnProfile">
-            <view class="stat-divider"></view>
-            <view class="stat-item" @tap="activeTab = 'collect'">
-              <text class="stat-num">{{ displayCollectCount }}</text>
-              <text class="stat-label">收藏</text>
-            </view>
-          </template>
         </view>
       </view>
 
@@ -78,7 +81,13 @@
             >去发帖</view
           >
         </view>
-        <PostCard v-for="post in authoredPosts" :key="post.id" :post="post" />
+        <view
+          v-for="post in authoredPosts"
+          :key="post.id"
+          @longpress="isOwnProfile && onPostLongPress(post)"
+        >
+          <PostCard :post="post" />
+        </view>
       </view>
 
       <view class="post-list-section" v-if="isOwnProfile && activeTab === 'collect'">
@@ -289,6 +298,14 @@ function goMyPosts() {
   activeTab.value = "posts";
 }
 
+function goFans(type) {
+  const uid = displayUser.value?.id;
+  if (!uid) return;
+  uni.navigateTo({
+    url: `/pages/user-fans/index?userId=${uid}&type=${type}`,
+  });
+}
+
 function goPublish() {
   uni.navigateTo({ url: "/pages/publish/index" });
 }
@@ -330,6 +347,33 @@ async function saveProfile() {
   } catch (error) {
     uni.showToast({ title: error?.message || "保存失败", icon: "none" });
   }
+}
+
+function onPostLongPress(post) {
+  uni.showActionSheet({
+    itemList: ["删除帖子"],
+    itemColor: "#ff4d4f",
+    success: ({ tapIndex }) => {
+      if (tapIndex === 0) confirmDeletePost(post);
+    },
+  });
+}
+
+function confirmDeletePost(post) {
+  uni.showModal({
+    title: "提示",
+    content: `确定删除帖子「${post.title || ""}」吗？`,
+    confirmColor: "#ff4d4f",
+    success: async ({ confirm }) => {
+      if (!confirm) return;
+      try {
+        await postsStore.deletePost(post.id);
+        uni.showToast({ title: "已删除", icon: "success" });
+      } catch (error) {
+        uni.showToast({ title: error?.message || "删除失败", icon: "none" });
+      }
+    },
+  });
 }
 
 function onLogout() {

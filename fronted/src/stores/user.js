@@ -97,6 +97,30 @@ export const useUserStore = defineStore("user", {
       }
       this.users = Array.from(map.values());
     },
+    async loginWithUsername({ username, password }) {
+      const data = await request({
+        url: "/api/user/login",
+        method: "POST",
+        data: { username, password },
+        header: { "Content-Type": "application/json" },
+        useAuth: false,
+      });
+      this.setSession(data);
+      return data;
+    },
+    async register(payload) {
+      await request({
+        url: "/api/user/register",
+        method: "POST",
+        data: payload,
+        header: { "Content-Type": "application/json" },
+        useAuth: false,
+      });
+      return this.loginWithUsername({
+        username: payload.username,
+        password: payload.password,
+      });
+    },
     async loginWithWechat() {
       // #ifdef MP-WEIXIN
       const code = await getWxLoginCode();
@@ -153,6 +177,37 @@ export const useUserStore = defineStore("user", {
       const normalized = normalizeUser(user);
       this.upsertUsers([normalized]);
       return normalized;
+    },
+    async followUser(userId) {
+      await request({
+        url: `/api/user/${userId}/follow`,
+        method: "POST",
+      });
+      this._patchUserFollow(userId, true);
+    },
+    async unfollowUser(userId) {
+      await request({
+        url: `/api/user/${userId}/follow`,
+        method: "DELETE",
+      });
+      this._patchUserFollow(userId, false);
+    },
+    async fetchFollowers(userId) {
+      const list = await request({
+        url: `/api/user/${userId}/followers`,
+      });
+      return (list || []).map(normalizeUser);
+    },
+    async fetchFollowing(userId) {
+      const list = await request({
+        url: `/api/user/${userId}/following`,
+      });
+      return (list || []).map(normalizeUser);
+    },
+    _patchUserFollow(userId, isFollowed) {
+      this.users = this.users.map((u) =>
+        Number(u.id) === Number(userId) ? { ...u, isFollowed } : u,
+      );
     },
     async updateProfile(data) {
       const user = await request({

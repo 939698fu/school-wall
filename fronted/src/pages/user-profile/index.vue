@@ -28,6 +28,16 @@
             <text class="stat-label">帖子</text>
           </view>
           <view class="stat-divider"></view>
+          <view class="stat-item" @tap="goFans('following')">
+            <text class="stat-num">{{ displayUser.followingCount || 0 }}</text>
+            <text class="stat-label">关注</text>
+          </view>
+          <view class="stat-divider"></view>
+          <view class="stat-item" @tap="goFans('followers')">
+            <text class="stat-num">{{ displayUser.followerCount || 0 }}</text>
+            <text class="stat-label">粉丝</text>
+          </view>
+          <view class="stat-divider"></view>
           <view class="stat-item">
             <text class="stat-num">{{ displayLikeCount }}</text>
             <text class="stat-label">获赞</text>
@@ -35,6 +45,11 @@
         </view>
 
         <view class="profile-actions">
+          <view
+            class="action-btn action-btn-follow"
+            :class="{ 'action-btn-followed': isFollowed }"
+            @tap="onFollow"
+          >{{ isFollowed ? "已关注" : "+ 关注" }}</view>
           <view class="action-btn action-btn-primary" @tap="startChat">私信 TA</view>
         </view>
       </view>
@@ -68,6 +83,7 @@ const userStore = useUserStore();
 
 const routeUserId = ref(null);
 const routeUserName = ref("");
+const followLoading = ref(false);
 
 onLoad((options) => {
   routeUserId.value = options.userId ? Number(options.userId) : null;
@@ -125,6 +141,38 @@ const displayLikeCount = computed(
         authoredPosts.value.reduce((total, post) => total + Number(post.likes || 0), 0),
     ),
 );
+
+const isFollowed = computed(() => displayUser.value?.isFollowed === true);
+
+async function onFollow() {
+  if (!userStore.isLoggedIn) {
+    uni.showToast({ title: "请先登录", icon: "none" });
+    return;
+  }
+  if (!displayUser.value?.id || followLoading.value) return;
+  followLoading.value = true;
+  try {
+    if (isFollowed.value) {
+      await userStore.unfollowUser(displayUser.value.id);
+      uni.showToast({ title: "已取消关注", icon: "none" });
+    } else {
+      await userStore.followUser(displayUser.value.id);
+      uni.showToast({ title: "关注成功", icon: "success" });
+    }
+  } catch (error) {
+    uni.showToast({ title: error?.message || "操作失败", icon: "none" });
+  } finally {
+    followLoading.value = false;
+  }
+}
+
+function goFans(type) {
+  const uid = displayUser.value?.id;
+  if (!uid) return;
+  uni.navigateTo({
+    url: `/pages/user-fans/index?userId=${uid}&type=${type}`,
+  });
+}
 
 function startChat() {
   if (!displayUser.value?.id) return;
@@ -248,9 +296,12 @@ function startChat() {
 
 .profile-actions {
   padding: 0 32rpx 28rpx;
+  display: flex;
+  gap: 20rpx;
 }
 
 .action-btn {
+  flex: 1;
   height: 84rpx;
   border-radius: 100rpx;
   display: flex;
@@ -258,11 +309,24 @@ function startChat() {
   justify-content: center;
   font-size: 28rpx;
   font-weight: 700;
+  transition: all 0.2s;
 }
 
 .action-btn-primary {
   background: var(--primary);
   color: #ffffff;
+}
+
+.action-btn-follow {
+  border: 2rpx solid var(--primary);
+  color: var(--primary);
+  background: #ffffff;
+}
+
+.action-btn-followed {
+  background: #f0f0f0;
+  color: #999999;
+  border-color: #e0e0e0;
 }
 
 .profile-tabs {

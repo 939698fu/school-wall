@@ -82,9 +82,11 @@
 <script setup>
 import { ref, onMounted } from "vue";
 import { usePostsStore } from "@/stores/posts";
+import { useUserStore } from "@/stores/user";
 import PostCard from "@/components/PostCard.vue";
 
 const postsStore = usePostsStore();
+const userStore = useUserStore();
 const activeIndex = ref(0);
 const refreshing = ref(false);
 const loadingMore = ref(false);
@@ -159,6 +161,10 @@ function onBanner() {
 }
 
 function goPublish() {
+  if (!userStore.isLoggedIn) {
+    uni.navigateTo({ url: "/pages/login/index" });
+    return;
+  }
   uni.navigateTo({
     url: "/pages/publish/index",
   });

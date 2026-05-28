@@ -141,6 +141,7 @@
 
 <script setup>
 import { ref, computed } from "vue";
+import { onLoad } from "@dcloudio/uni-app";
 import { usePostsStore } from "@/stores/posts";
 import { useUserStore } from "@/stores/user";
 
@@ -180,6 +181,12 @@ const canPublish = computed(
     title.value.trim().length >= 2 &&
     content.value.trim().length >= 10,
 );
+
+onLoad(async () => {
+  if (!userStore.isLoggedIn && userStore.token) {
+    await userStore.bootstrapSession().catch(() => null);
+  }
+});
 
 function onContentInput(e) {
   const value = e?.detail?.value ?? content.value;
@@ -266,11 +273,31 @@ function selectTag(tag) {
 }
 
 async function onPublish() {
+  const titleText = title.value.trim();
+  const contentText = content.value.trim();
+
+  if (!userStore.isLoggedIn && userStore.token) {
+    await userStore.bootstrapSession().catch(() => null);
+  }
+
   if (!userStore.isLoggedIn) {
-    uni.showToast({ title: "请先登录", icon: "none" });
+    uni.showToast({ title: "请先登录后再发布", icon: "none" });
+    setTimeout(() => {
+      uni.navigateTo({ url: "/pages/login/index" });
+    }, 300);
     return;
   }
-  if (!canPublish.value) return;
+  if (publishing.value) {
+    return;
+  }
+  if (titleText.length < 2) {
+    uni.showToast({ title: "标题至少 2 个字", icon: "none" });
+    return;
+  }
+  if (contentText.length < 10) {
+    uni.showToast({ title: "正文至少 10 个字", icon: "none" });
+    return;
+  }
   const tagEntry = availableTags.find((t) => t.label === selectedTag.value) || {
     value: "gray",
     label: "校园生活",
@@ -279,8 +306,8 @@ async function onPublish() {
   try {
     const images = await postsStore.uploadPostImages(selectedImages.value);
     await postsStore.createPost({
-      title: title.value.trim(),
-      content: content.value.trim(),
+      title: titleText,
+      content: contentText,
       images,
       tag: selectedTag.value
         ? selectedTag.value.replace(/^.+?\s/, "")

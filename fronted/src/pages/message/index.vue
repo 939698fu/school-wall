@@ -62,7 +62,18 @@
 
       <!-- 会话列表 -->
       <view v-else>
-        <view class="conv-list">
+        <view v-if="!ready" class="empty-tip">
+          <text>正在加载私信...</text>
+        </view>
+        <view v-else-if="!userStore.isLoggedIn" class="empty-tip auth-tip">
+          <text class="auth-tip-title">登录后查看私信</text>
+          <text class="auth-tip-desc">私信列表和聊天记录需要登录后才能同步。</text>
+          <view class="auth-tip-btn" @tap="goLogin">去登录</view>
+        </view>
+        <view v-else-if="!conversations.length" class="empty-tip">
+          <text>暂时还没有私信记录</text>
+        </view>
+        <view v-else class="conv-list">
           <view
             v-for="conv in conversations"
             :key="conv.id"
@@ -98,7 +109,7 @@
           </view>
         </view>
 
-        <view class="list-tip">
+        <view v-if="userStore.isLoggedIn && conversations.length" class="list-tip">
           <text class="list-tip-text">— 仅展示最近 30 天的私信 —</text>
         </view>
       </view>
@@ -120,18 +131,29 @@ const keyword = ref("");
 const searching = ref(false);
 const searchResults = ref([]);
 const isSearchMode = computed(() => keyword.value.trim().length > 0);
+const ready = ref(false);
 
 let searchTimer = null;
 
 onLoad(() => {});
 
-onShow(() => {
+onShow(async () => {
+  ready.value = false;
+  if (!userStore.isLoggedIn && userStore.token) {
+    await userStore.bootstrapSession().catch(() => null);
+  }
   if (!userStore.isLoggedIn) {
+    ready.value = true;
     return;
   }
-  chatStore.fetchConversations().catch((error) => {
-    uni.showToast({ title: error?.message || "加载失败", icon: "none" });
-  });
+  chatStore
+    .fetchConversations()
+    .catch((error) => {
+      uni.showToast({ title: error?.message || "加载失败", icon: "none" });
+    })
+    .finally(() => {
+      ready.value = true;
+    });
 });
 
 function onSearchInput() {
@@ -171,8 +193,8 @@ function goChat(conv) {
   });
 }
 
-function newChat() {
-  uni.showToast({ title: "请从帖子详情页发起私信", icon: "none" });
+function goLogin() {
+  uni.navigateTo({ url: "/pages/login/index" });
 }
 </script>
 
@@ -215,6 +237,39 @@ function newChat() {
   align-items: center;
   justify-content: center;
   font-size: 32rpx;
+}
+
+.auth-tip {
+  padding: 120rpx 48rpx 80rpx;
+}
+
+.auth-tip-title {
+  display: block;
+  font-size: 34rpx;
+  font-weight: 700;
+  color: var(--text-main);
+}
+
+.auth-tip-desc {
+  display: block;
+  margin-top: 16rpx;
+  font-size: 26rpx;
+  color: var(--text-sub);
+  line-height: 1.7;
+}
+
+.auth-tip-btn {
+  margin: 28rpx auto 0;
+  width: 220rpx;
+  height: 76rpx;
+  border-radius: 999rpx;
+  background: var(--primary);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28rpx;
+  font-weight: 600;
 }
 
 .scroll-area {

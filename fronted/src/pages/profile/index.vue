@@ -106,15 +106,21 @@
               <text class="arrow-down"> ∨</text>
             </view>
           </view>
-          <view v-if="postsExpanded" class="load-status-bar">
-            <view v-if="postsLoading" class="loading-box">
-              <view class="spinner"></view>
-              <text>正在加载中...</text>
+          
+          <block v-if="postsExpanded">
+            <view v-if="postsLoading" class="load-status-bar">
+              <view class="loading-box">
+                <view class="spinner"></view>
+                <text>正在加载中...</text>
+              </view>
             </view>
-            <view v-else-if="!hasMorePosts" class="no-more-tip">
-              <text>— 已经到底啦 —</text>
+            <view v-else-if="!hasMorePosts" class="show-more-wrap">
+              <view class="show-more-btn" @tap="handleCollapsePosts">
+                <text>收起帖子</text>
+                <text class="arrow-up"> ∧</text>
+              </view>
             </view>
-          </view>
+          </block>
         </view>
 
         <view class="post-list-section" v-if="isOwnProfile && activeTab === 'collect'">
@@ -131,15 +137,21 @@
               <text class="arrow-down"> ∨</text>
             </view>
           </view>
-          <view v-if="collectExpanded" class="load-status-bar">
-            <view v-if="collectLoading" class="loading-box">
-              <view class="spinner"></view>
-              <text>正在加载中...</text>
+          
+          <block v-if="collectExpanded">
+            <view v-if="collectLoading" class="load-status-bar">
+              <view class="loading-box">
+                <view class="spinner"></view>
+                <text>正在加载中...</text>
+              </view>
             </view>
-            <view v-else-if="!hasMoreCollect" class="no-more-tip">
-              <text>— 已经到底啦 —</text>
+            <view v-else-if="!hasMoreCollect" class="show-more-wrap">
+              <view class="show-more-btn" @tap="handleCollapseCollect">
+                <text>收起收藏</text>
+                <text class="arrow-up"> ∧</text>
+              </view>
             </view>
-          </view>
+          </block>
         </view>
       </view>
 
@@ -332,6 +344,16 @@ function handleExpandPosts() {
 function handleExpandCollect() {
   collectExpanded.value = true;
   collectVisible.value = pageSize;
+}
+
+// 收起动作 (新增)
+function handleCollapsePosts() {
+  postsExpanded.value = false;
+  postsVisible.value = 2; // 折叠回初始显示数量
+}
+function handleCollapseCollect() {
+  collectExpanded.value = false;
+  collectVisible.value = 2; // 折叠回初始显示数量
 }
 
 // 触底加载动作
@@ -725,7 +747,7 @@ function onLogout() {
   box-shadow: 0 6rpx 16rpx rgba(255, 87, 34, 0.25);
 }
 
-/* 查看更多按钮 */
+/* 查看更多/收起按钮 */
 .show-more-wrap {
   padding: 30rpx 0 50rpx;
   display: flex;
@@ -750,7 +772,13 @@ function onLogout() {
   transform: scale(0.8);
 }
 
-/* 底部状态栏与加载动画 */
+/* 新增的向上箭头 */
+.arrow-up {
+  font-size: 20rpx;
+  transform: scale(0.8);
+}
+
+/* 底部加载动画 */
 .load-status-bar {
   padding: 40rpx 0 60rpx;
   text-align: center;

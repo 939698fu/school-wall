@@ -1,106 +1,150 @@
 <template>
   <view class="profile-page">
-    <scroll-view scroll-y class="scroll-area">
-      <!-- 头部用户信息卡片 -->
-      <view class="profile-header">
-        <view class="header-bg"></view>
-        <view class="header-content">
-          <view class="avatar-wrap" @tap="changeAvatar">
-            <image
-              v-if="displayUser.avatar && displayUser.avatar.includes('/')"
-              class="user-avatar"
-              :src="displayUser.avatar"
-              mode="aspectFill"
-            />
-            <view v-else class="user-avatar">{{ displayUser.avatar }}</view>
-            <view v-if="isOwnProfile" class="avatar-edit-badge">✏</view>
-          </view>
-          <view class="user-info">
-            <view class="nickname-row">
-              <text class="user-nickname">{{ displayUser.nickname }}</text>
-              <view v-if="isOwnProfile" class="edit-btn" @tap="editProfile"
-                >编辑资料</view
-              >
+    <scroll-view 
+      scroll-y 
+      class="scroll-area"
+      @scrolltolower="handleReachBottom"
+      :lower-threshold="100"
+    >
+      <view class="profile-header-modern">
+        <view class="header-bg-modern">
+          <view class="bg-shape shape-1"></view>
+          <view class="bg-shape shape-2"></view>
+        </view>
+
+        <view class="user-card-floating">
+          
+          <view class="card-top-row">
+            <view class="avatar-wrap-modern" @tap="changeAvatar">
+              <image
+                v-if="displayUser.avatar && displayUser.avatar.includes('/')"
+                class="user-avatar-img"
+                :src="displayUser.avatar"
+                mode="aspectFill"
+              />
+              <view v-else class="user-avatar-text">{{ displayUser.avatar }}</view>
+              <view v-if="isOwnProfile" class="avatar-edit-badge">✏️</view>
             </view>
-            <text class="user-school">{{ displayUser.school }}</text>
-            <text class="user-bio">{{
-              displayUser.bio || "这个人很懒，什么都没写~"
-            }}</text>
+            <view class="action-buttons-modern">
+              <view v-if="isOwnProfile" class="btn-edit-modern" @tap="editProfile">
+                编辑资料
+              </view>
+            </view>
           </view>
-        </view>
 
-        <!-- 数据统计 -->
-        <view class="stat-bar">
-          <view class="stat-item" @tap="goMyPosts">
-            <text class="stat-num">{{ displayPostCount }}</text>
-            <text class="stat-label">帖子</text>
+          <view class="user-info-modern">
+            <view class="name-line">
+              <text class="user-nickname-modern">{{ displayUser.nickname }}</text>
+              <view class="school-badge">
+                <text class="badge-icon">🎓</text>
+                <text>{{ displayUser.school || '未填写学校' }}</text>
+              </view>
+            </view>
+            <text class="user-bio-modern">{{ displayUser.bio || "这个人很懒，什么都没写~" }}</text>
           </view>
-          <view class="stat-divider"></view>
-          <view class="stat-item" @tap="goFans('following')">
-            <text class="stat-num">{{ displayUser.followingCount || 0 }}</text>
-            <text class="stat-label">关注</text>
-          </view>
-          <view class="stat-divider"></view>
-          <view class="stat-item" @tap="goFans('followers')">
-            <text class="stat-num">{{ displayUser.followerCount || 0 }}</text>
-            <text class="stat-label">粉丝</text>
-          </view>
-          <view class="stat-divider"></view>
-          <view class="stat-item">
-            <text class="stat-num">{{ displayLikeCount }}</text>
-            <text class="stat-label">获赞</text>
+
+          <view class="stats-modern">
+            <view class="stat-item-m" @tap="goMyPosts">
+              <text class="stat-num-m">{{ displayPostCount }}</text>
+              <text class="stat-label-m">帖子</text>
+            </view>
+            <view class="stat-item-m" @tap="goFans('following')">
+              <text class="stat-num-m">{{ displayUser.followingCount || 0 }}</text>
+              <text class="stat-label-m">关注</text>
+            </view>
+            <view class="stat-item-m" @tap="goFans('followers')">
+              <text class="stat-num-m">{{ displayUser.followerCount || 0 }}</text>
+              <text class="stat-label-m">粉丝</text>
+            </view>
+            <view class="stat-item-m">
+              <text class="stat-num-m">{{ displayLikeCount }}</text>
+              <text class="stat-label-m">获赞</text>
+            </view>
           </view>
         </view>
       </view>
 
-      <!-- Tab 切换：我的帖子 / 收藏 -->
-      <view class="profile-tabs">
-        <view
-          class="ptab"
-          :class="{ active: activeTab === 'posts' }"
-          @tap="activeTab = 'posts'"
-          >{{ isOwnProfile ? "我的帖子" : "TA 的帖子" }}</view
-        >
-        <view
-          v-if="isOwnProfile"
-          class="ptab"
-          :class="{ active: activeTab === 'collect' }"
-          @tap="activeTab = 'collect'"
-          >我的收藏</view
-        >
-      </view>
+      <view class="section-divider"></view>
 
-      <!-- 帖子列表 -->
-      <view class="post-list-section" v-if="activeTab === 'posts'">
-        <view v-if="authoredPosts.length === 0" class="empty-tip">
-          <text class="empty-emoji">📝</text>
-          <text class="empty-text">{{
-            isOwnProfile ? "还没有发过帖子" : "TA 还没有发过帖子"
-          }}</text>
-          <view v-if="isOwnProfile" class="empty-btn" @tap="goPublish"
-            >去发帖</view
+      <view class="content-section">
+        <view class="profile-tabs">
+          <view
+            class="ptab"
+            :class="{ active: activeTab === 'posts' }"
+            @tap="activeTab = 'posts'"
+            >{{ isOwnProfile ? "我的帖子" : "TA 的帖子" }}</view
+          >
+          <view
+            v-if="isOwnProfile"
+            class="ptab"
+            :class="{ active: activeTab === 'collect' }"
+            @tap="activeTab = 'collect'"
+            >我的收藏</view
           >
         </view>
-        <view
-          v-for="post in authoredPosts"
-          :key="post.id"
-          @longpress="isOwnProfile && onPostLongPress(post)"
-        >
-          <PostCard :post="post" />
+
+        <view class="post-list-section" v-if="activeTab === 'posts'">
+          <view v-if="authoredPosts.length === 0" class="empty-tip">
+            <text class="empty-emoji">📝</text>
+            <text class="empty-text">{{
+              isOwnProfile ? "还没有发过帖子" : "TA 还没有发过帖子"
+            }}</text>
+            <view v-if="isOwnProfile" class="empty-btn" @tap="goPublish">去发帖</view>
+          </view>
+          
+          <view
+            v-for="post in displayedAuthoredPosts"
+            :key="post.id"
+            @longpress="isOwnProfile && onPostLongPress(post)"
+          >
+            <PostCard :post="post" />
+          </view>
+
+          <view v-if="authoredPosts.length > 2 && !postsExpanded" class="show-more-wrap">
+            <view class="show-more-btn" @tap="handleExpandPosts">
+              <text>查看更多帖子</text>
+              <text class="arrow-down"> ∨</text>
+            </view>
+          </view>
+          <view v-if="postsExpanded" class="load-status-bar">
+            <view v-if="postsLoading" class="loading-box">
+              <view class="spinner"></view>
+              <text>正在加载中...</text>
+            </view>
+            <view v-else-if="!hasMorePosts" class="no-more-tip">
+              <text>— 已经到底啦 —</text>
+            </view>
+          </view>
+        </view>
+
+        <view class="post-list-section" v-if="isOwnProfile && activeTab === 'collect'">
+          <view v-if="collectedPosts.length === 0" class="empty-tip">
+            <text class="empty-emoji">⭐</text>
+            <text class="empty-text">还没有收藏任何帖子</text>
+          </view>
+          
+          <PostCard v-for="post in displayedCollectedPosts" :key="post.id" :post="post" />
+
+          <view v-if="collectedPosts.length > 2 && !collectExpanded" class="show-more-wrap">
+            <view class="show-more-btn" @tap="handleExpandCollect">
+              <text>查看更多收藏</text>
+              <text class="arrow-down"> ∨</text>
+            </view>
+          </view>
+          <view v-if="collectExpanded" class="load-status-bar">
+            <view v-if="collectLoading" class="loading-box">
+              <view class="spinner"></view>
+              <text>正在加载中...</text>
+            </view>
+            <view v-else-if="!hasMoreCollect" class="no-more-tip">
+              <text>— 已经到底啦 —</text>
+            </view>
+          </view>
         </view>
       </view>
 
-      <view class="post-list-section" v-if="isOwnProfile && activeTab === 'collect'">
-        <view v-if="collectedPosts.length === 0" class="empty-tip">
-          <text class="empty-emoji">⭐</text>
-          <text class="empty-text">还没有收藏任何帖子</text>
-        </view>
-        <PostCard v-for="post in collectedPosts" :key="post.id" :post="post" />
-      </view>
-
-      <!-- 设置菜单 -->
       <view v-if="isOwnProfile" class="settings-section">
-        <text class="settings-title">设置</text>
+        <text class="settings-title">系统与偏好</text>
         <view class="settings-list">
           <view
             class="settings-item"
@@ -115,15 +159,13 @@
         </view>
       </view>
 
-      <!-- 退出登录 -->
       <view v-if="isOwnProfile" class="logout-wrap">
-        <view class="logout-btn" @tap="onLogout">退出登录</view>
+        <view class="logout-btn" @tap="onLogout">退出当前账号</view>
       </view>
 
       <view style="height: 40rpx"></view>
     </scroll-view>
 
-    <!-- 编辑资料弹窗 -->
     <view
       v-if="showEditModal"
       class="modal-mask"
@@ -193,6 +235,17 @@ const showEditModal = ref(false);
 const routeUserId = ref(null);
 const routeUserName = ref("");
 
+// ================= 分页与折叠控制逻辑 =================
+const pageSize = 10;
+// 帖子的状态
+const postsExpanded = ref(false);
+const postsVisible = ref(2);
+const postsLoading = ref(false);
+// 收藏的状态
+const collectExpanded = ref(false);
+const collectVisible = ref(2);
+const collectLoading = ref(false);
+
 const editForm = reactive({
   nickname: "",
   school: "",
@@ -252,18 +305,53 @@ const displayUser = computed(() => {
   );
 });
 
+// 数据源
 const authoredPosts = computed(() => {
-  if (isOwnProfile.value) {
-    return postsStore.myPosts;
-  }
+  if (isOwnProfile.value) return postsStore.myPosts;
   if (!displayUser.value?.id) return [];
   return postsStore.userPostsMap[displayUser.value.id] || [];
 });
-
 const collectedPosts = computed(() => {
   if (!isOwnProfile.value) return [];
   return postsStore.myCollections;
 });
+
+// 分页截取渲染的数据
+const displayedAuthoredPosts = computed(() => authoredPosts.value.slice(0, postsVisible.value));
+const displayedCollectedPosts = computed(() => collectedPosts.value.slice(0, collectVisible.value));
+
+// 是否还有更多
+const hasMorePosts = computed(() => postsVisible.value < authoredPosts.value.length);
+const hasMoreCollect = computed(() => collectVisible.value < collectedPosts.value.length);
+
+// 展开动作
+function handleExpandPosts() {
+  postsExpanded.value = true;
+  postsVisible.value = pageSize;
+}
+function handleExpandCollect() {
+  collectExpanded.value = true;
+  collectVisible.value = pageSize;
+}
+
+// 触底加载动作
+function handleReachBottom() {
+  if (activeTab.value === 'posts') {
+    if (!postsExpanded.value || postsLoading.value || !hasMorePosts.value) return;
+    postsLoading.value = true;
+    setTimeout(() => {
+      postsVisible.value += pageSize;
+      postsLoading.value = false;
+    }, 800);
+  } else if (activeTab.value === 'collect') {
+    if (!collectExpanded.value || collectLoading.value || !hasMoreCollect.value) return;
+    collectLoading.value = true;
+    setTimeout(() => {
+      collectVisible.value += pageSize;
+      collectLoading.value = false;
+    }, 800);
+  }
+}
 
 const displayPostCount = computed(
   () => Number(displayUser.value?.postCount ?? authoredPosts.value.length ?? 0),
@@ -275,10 +363,6 @@ const displayLikeCount = computed(
       displayUser.value?.likeCount ??
         authoredPosts.value.reduce((total, post) => total + Number(post.likes || 0), 0),
     ),
-);
-
-const displayCollectCount = computed(
-  () => Number(displayUser.value?.collectCount ?? collectedPosts.value.length ?? 0),
 );
 
 const settingItems = [
@@ -393,173 +477,227 @@ function onLogout() {
 <style scoped>
 .profile-page {
   min-height: 100vh;
-  background: var(--bg);
+  background: var(--bg, #f5f6f8);
 }
 
 .scroll-area {
   height: 100vh;
 }
 
-/* 头部卡片 */
-.profile-header {
-  background: #ffffff;
+/* ================= 头部高级感样式 ================= */
+.profile-header-modern {
   position: relative;
-  padding-top: var(--status-bar-height, 44px);
-  margin-bottom: 0;
+  padding-bottom: 20rpx;
+  background: var(--bg, #f5f6f8);
 }
 
-.header-bg {
+.header-bg-modern {
+  position: relative;
+  height: 280rpx;
+  background: linear-gradient(135deg, #ff7a1a 0%, #ff5722 100%);
+  overflow: hidden;
+}
+
+.bg-shape {
   position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 240rpx;
-  background: linear-gradient(160deg, #ff5a35 0%, #ff9060 100%);
-}
-
-.header-content {
-  position: relative;
-  padding: 40rpx 32rpx 20rpx;
-  display: flex;
-  align-items: flex-end;
-  gap: 20rpx;
-}
-
-.avatar-wrap {
-  position: relative;
-  flex-shrink: 0;
-}
-
-.user-avatar {
-  width: 128rpx;
-  height: 128rpx;
   border-radius: 50%;
-  background: #fff;
-  border: 4rpx solid #ffffff;
+  background: linear-gradient(180deg, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0) 100%);
+}
+.shape-1 {
+  width: 300rpx;
+  height: 300rpx;
+  top: -100rpx;
+  right: -50rpx;
+}
+.shape-2 {
+  width: 200rpx;
+  height: 200rpx;
+  bottom: -50rpx;
+  left: 50rpx;
+}
+
+.user-card-floating {
+  margin: -100rpx 32rpx 0;
+  background: #ffffff;
+  border-radius: 32rpx;
+  padding: 0 32rpx 32rpx;
+  position: relative;
+  z-index: 10;
+  box-shadow: 0 16rpx 48rpx rgba(0, 0, 0, 0.05);
+}
+
+.card-top-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-bottom: 24rpx;
+}
+
+.avatar-wrap-modern {
+  margin-top: -40rpx;
+  position: relative;
+}
+
+.user-avatar-img, .user-avatar-text {
+  width: 144rpx;
+  height: 144rpx;
+  border-radius: 50%;
+  border: 8rpx solid #ffffff;
+  background: #ffffff;
+  box-shadow: 0 8rpx 24rpx rgba(255, 87, 34, 0.15);
+}
+.user-avatar-text {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 64rpx;
-  box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.12);
+  font-size: 72rpx;
 }
 
 .avatar-edit-badge {
   position: absolute;
-  bottom: 0;
-  right: 0;
-  width: 40rpx;
-  height: 40rpx;
+  bottom: 8rpx;
+  right: 8rpx;
+  width: 44rpx;
+  height: 44rpx;
   border-radius: 50%;
-  background: var(--primary);
-  color: #fff;
-  font-size: 20rpx;
+  background: #ffffff;
+  color: #ff5722;
+  font-size: 22rpx;
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 2rpx solid #fff;
+  border: 2rpx solid #eeeeee;
+  box-shadow: 0 4rpx 10rpx rgba(0,0,0,0.1);
+  z-index: 2;
 }
 
-.user-info {
-  flex: 1;
-  padding-bottom: 4rpx;
+.action-buttons-modern {
+  display: flex;
+  gap: 16rpx;
+  padding-bottom: 8rpx;
 }
 
-.nickname-row {
+.btn-edit-modern {
+  height: 64rpx;
+  border-radius: 100rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 26rpx;
+  font-weight: 600;
+  padding: 0 36rpx;
+  transition: all 0.2s;
+  background: #F5F6F8;
+  color: #333333;
+}
+
+.user-info-modern {
+  margin-bottom: 32rpx;
+}
+.name-line {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+  margin-bottom: 12rpx;
+}
+.user-nickname-modern {
+  font-size: 42rpx;
+  font-weight: 800;
+  color: #1A1A1A;
+  letter-spacing: 1rpx;
+}
+
+.school-badge {
+  display: flex;
+  align-items: center;
+  gap: 4rpx;
+  background: rgba(255, 122, 26, 0.1);
+  color: #FF7A1A;
+  font-size: 22rpx;
+  font-weight: 600;
+  padding: 4rpx 14rpx;
+  border-radius: 8rpx;
+}
+.badge-icon {
+  font-size: 20rpx;
+}
+
+.user-bio-modern {
+  font-size: 28rpx;
+  color: #777777;
+  line-height: 1.5;
+}
+
+.stats-modern {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 6rpx;
+  padding: 0 16rpx;
 }
-
-.user-nickname {
-  font-size: 36rpx;
-  font-weight: 800;
-  color: var(--text-main);
-}
-
-.edit-btn {
-  font-size: 24rpx;
-  color: var(--text-sub);
-  border: 1rpx solid var(--border);
-  border-radius: 100rpx;
-  padding: 6rpx 22rpx;
-  background: #fff;
-}
-
-.user-school {
-  font-size: 24rpx;
-  color: var(--text-hint);
-  display: block;
-  margin-bottom: 6rpx;
-}
-
-.user-bio {
-  font-size: 26rpx;
-  color: var(--text-sub);
-  display: block;
-}
-
-/* 统计条 */
-.stat-bar {
-  display: flex;
-  align-items: center;
-  padding: 24rpx 40rpx;
-  margin-top: 8rpx;
-  border-top: 1rpx solid var(--border);
-}
-
-.stat-item {
-  flex: 1;
+.stat-item-m {
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 4rpx;
 }
-
-.stat-num {
-  font-size: 36rpx;
-  font-weight: 800;
-  color: var(--text-main);
+.stat-num-m {
+  font-size: 38rpx;
+  font-weight: 900;
+  color: #1A1A1A;
+  font-family: 'DIN', -apple-system, sans-serif;
+}
+.stat-label-m {
+  font-size: 24rpx;
+  color: #888888;
 }
 
-.stat-label {
-  font-size: 22rpx;
-  color: var(--text-hint);
+/* ================= 列表区样式 ================= */
+.section-divider {
+  height: 16rpx;
+  background: transparent;
 }
 
-.stat-divider {
-  width: 1rpx;
-  height: 48rpx;
-  background: var(--border);
+.content-section {
+  background: #ffffff;
 }
 
-/* 内容 Tab */
 .profile-tabs {
   display: flex;
   background: #ffffff;
-  border-bottom: 1rpx solid var(--border);
-  margin-top: 12rpx;
+  border-bottom: 1rpx solid #f0f0f0;
 }
 
 .ptab {
   flex: 1;
-  padding: 22rpx 0;
+  padding: 26rpx 0;
   text-align: center;
-  font-size: 28rpx;
-  color: var(--text-hint);
-  border-bottom: 4rpx solid transparent;
-  margin-bottom: -1rpx;
+  font-size: 30rpx;
+  color: #999999;
+  font-weight: 600;
+  position: relative;
+  transition: color 0.3s;
 }
 
 .ptab.active {
-  color: var(--primary);
-  font-weight: 600;
-  border-bottom-color: var(--primary);
+  color: var(--primary, #ff7a1a);
+  font-weight: 700;
 }
 
-/* 帖子区 */
+.ptab.active::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 40rpx;
+  height: 6rpx;
+  border-radius: 6rpx;
+  background: var(--primary, #ff7a1a);
+}
+
 .post-list-section {
-  padding-top: 8rpx;
+  padding-top: 16rpx;
+  background: var(--bg, #f5f6f8);
 }
 
 .empty-tip {
@@ -568,87 +706,145 @@ function onLogout() {
   align-items: center;
   padding: 80rpx 0;
   gap: 16rpx;
+  background: #ffffff;
 }
-
 .empty-emoji {
   font-size: 64rpx;
 }
 .empty-text {
   font-size: 28rpx;
-  color: var(--text-hint);
+  color: #999999;
 }
 .empty-btn {
-  margin-top: 8rpx;
-  background: var(--primary);
+  margin-top: 16rpx;
+  background: linear-gradient(90deg, #ff7a1a, #ff5722);
   color: #fff;
   border-radius: 100rpx;
   padding: 14rpx 48rpx;
   font-size: 28rpx;
+  box-shadow: 0 6rpx 16rpx rgba(255, 87, 34, 0.25);
 }
 
-/* 设置区 */
+/* 查看更多按钮 */
+.show-more-wrap {
+  padding: 30rpx 0 50rpx;
+  display: flex;
+  justify-content: center;
+  background: var(--bg, #f5f6f8);
+}
+
+.show-more-btn {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+  padding: 16rpx 48rpx;
+  background: #ffffff;
+  border-radius: 40rpx;
+  font-size: 26rpx;
+  color: #666666;
+  box-shadow: 0 4rpx 12rpx rgba(0,0,0,0.04);
+}
+
+.arrow-down {
+  font-size: 20rpx;
+  transform: scale(0.8);
+}
+
+/* 底部状态栏与加载动画 */
+.load-status-bar {
+  padding: 40rpx 0 60rpx;
+  text-align: center;
+  background: var(--bg, #f5f6f8);
+}
+
+.loading-box {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16rpx;
+  font-size: 26rpx;
+  color: #888888;
+}
+
+.spinner {
+  width: 32rpx;
+  height: 32rpx;
+  border: 3rpx solid #e0e0e0;
+  border-top-color: var(--primary, #ff7a1a);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.no-more-tip {
+  font-size: 24rpx;
+  color: #cccccc;
+}
+
+/* ================= 设置与退出区 ================= */
 .settings-section {
   background: #ffffff;
   margin-top: 16rpx;
-  padding: 24rpx 32rpx 8rpx;
+  padding: 32rpx 32rpx 8rpx;
 }
 
 .settings-title {
-  font-size: 26rpx;
-  color: var(--text-hint);
-  margin-bottom: 8rpx;
+  font-size: 28rpx;
+  font-weight: 700;
+  color: #1A1A1A;
+  margin-bottom: 12rpx;
   display: block;
-}
-
-.settings-list {
 }
 
 .settings-item {
   display: flex;
   align-items: center;
-  padding: 26rpx 0;
-  border-bottom: 1rpx solid var(--border);
-  gap: 20rpx;
+  padding: 30rpx 0;
+  border-bottom: 1rpx solid #f5f5f5;
+  gap: 24rpx;
 }
-
 .settings-item:last-child {
   border-bottom: none;
 }
-
 .settings-icon {
-  font-size: 32rpx;
-  width: 40rpx;
+  font-size: 36rpx;
+  width: 48rpx;
   text-align: center;
 }
 .settings-label {
   flex: 1;
   font-size: 30rpx;
-  color: var(--text-main);
+  color: #333333;
 }
 .settings-arrow {
-  font-size: 32rpx;
-  color: var(--text-hint);
+  font-size: 36rpx;
+  color: #cccccc;
 }
 
-/* 退出登录 */
 .logout-wrap {
-  padding: 32rpx 32rpx 16rpx;
+  padding: 40rpx 32rpx 20rpx;
 }
 
 .logout-btn {
   width: 100%;
-  height: 88rpx;
+  height: 96rpx;
   background: #ffffff;
   border-radius: 200rpx;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 30rpx;
+  font-size: 32rpx;
+  font-weight: 600;
   color: #ff3b30;
-  border: 1rpx solid #ffcdd0;
+  border: 2rpx solid rgba(255, 59, 48, 0.15);
 }
 
-/* 编辑弹窗 */
+/* ================= 编辑弹窗 ================= */
 .modal-mask {
   position: fixed;
   inset: 0;
@@ -690,12 +886,12 @@ function onLogout() {
 .modal-title {
   font-size: 34rpx;
   font-weight: 800;
-  color: var(--text-main);
+  color: #333;
 }
 
 .modal-close {
   font-size: 44rpx;
-  color: var(--text-hint);
+  color: #999;
   width: 56rpx;
   height: 56rpx;
   display: flex;
@@ -724,19 +920,19 @@ function onLogout() {
 .field-label {
   font-size: 26rpx;
   font-weight: 600;
-  color: var(--text-hint);
+  color: #888;
 }
 
 .field-input {
   border-bottom: 2rpx solid #f0f0f0;
   padding: 16rpx 0;
   font-size: 32rpx;
-  color: var(--text-main);
+  color: #333;
   transition: border-color 0.2s;
 }
 
 .field-input:focus {
-  border-bottom-color: var(--primary);
+  border-bottom-color: var(--primary, #ff7a1a);
 }
 
 .field-textarea {
@@ -744,7 +940,7 @@ function onLogout() {
   border-radius: 20rpx;
   padding: 24rpx;
   font-size: 30rpx;
-  color: var(--text-main);
+  color: #333;
   width: 100%;
   box-sizing: border-box;
   min-height: 200rpx;
@@ -761,19 +957,19 @@ function onLogout() {
   flex: 1;
   height: 88rpx;
   border-radius: 200rpx;
-  border: 1rpx solid var(--border);
+  border: 1rpx solid #eeeeee;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 30rpx;
-  color: var(--text-sub);
+  color: #666;
 }
 
 .modal-confirm {
   flex: 2;
   height: 88rpx;
   border-radius: 200rpx;
-  background: var(--primary);
+  background: var(--primary, #ff7a1a);
   display: flex;
   align-items: center;
   justify-content: center;

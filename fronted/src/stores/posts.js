@@ -142,15 +142,18 @@ export const usePostsStore = defineStore("posts", {
       }
 
       const cursor = refresh ? null : tabState.cursor;
+      const requestData = {
+        size: tabState.size,
+        type: tab,
+      };
+      if (cursor != null) {
+        requestData.cursor = cursor;
+      }
       this.loading = true;
       try {
         const result = await request({
           url: "/api/posts/cursor",
-          data: {
-            cursor,
-            size: tabState.size,
-            type: tab,
-          },
+          data: requestData,
         });
         const records = (result?.records || []).map((item) => normalizePost(item));
         const sortByTime = tab !== "hot";

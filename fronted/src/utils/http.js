@@ -26,12 +26,21 @@ function buildHeaders(extraHeaders = {}, useAuth = true) {
   return headers;
 }
 
+function normalizeRequestData(data) {
+  if (!data || typeof data !== "object" || Array.isArray(data)) {
+    return data;
+  }
+  return Object.fromEntries(
+    Object.entries(data).filter(([, value]) => value !== null && value !== undefined && value !== ""),
+  );
+}
+
 export function request({ url, method = "GET", data, header, useAuth = true }) {
   return new Promise((resolve, reject) => {
     uni.request({
       url: `${getBaseUrl()}${url}`,
       method,
-      data,
+      data: normalizeRequestData(data),
       header: buildHeaders(header, useAuth),
       success: ({ data: response }) => {
         if (response?.code === 200) {

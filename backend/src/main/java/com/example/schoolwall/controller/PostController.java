@@ -64,14 +64,30 @@ public class PostController {
     @GetMapping("/cursor")
     @Operation(summary = "获取帖子列表(游标分页)", description = "用于无限滚动的游标分页接口，首次请求cursor传null，之后传入返回的nextCursor")
     public Result<CursorPageVO<PostVO>> getPostListByCursor(
-            @Parameter(description = "游标时间戳（首次请求为null）") @RequestParam(required = false) Long cursor,
+            @Parameter(description = "游标时间戳（首次请求为空，之后传入返回的nextCursor）") @RequestParam(required = false) String cursor,
             @Parameter(description = "每页数量") @RequestParam(defaultValue = "10") Integer size,
             @Parameter(description = "排序类型：latest(最新)、hot(热门)、hole(树洞)、love(表白)") @RequestParam(defaultValue = "latest") String type,
             @Parameter(description = "话题标签筛选") @RequestParam(required = false) String tag,
             @RequestAttribute(value = "userId", required = false) Long userId) {
 
-        CursorPageVO<PostVO> result = postService.getPostListByCursor(cursor, size, type, tag, userId);
+        Long parsedCursor = parseCursor(cursor);
+        CursorPageVO<PostVO> result = postService.getPostListByCursor(parsedCursor, size, type, tag, userId);
         return Result.success(result);
+    }
+
+    private Long parseCursor(String cursor) {
+        if (cursor == null) {
+            return null;
+        }
+        String value = cursor.trim();
+        if (value.isEmpty() || "null".equalsIgnoreCase(value) || "undefined".equalsIgnoreCase(value)) {
+            return null;
+        }
+        try {
+            return Long.valueOf(value);
+        } catch (NumberFormatException ex) {
+            throw BusinessException.badRequest("cursor参数格式错误");
+        }
     }
 
     /**

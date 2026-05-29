@@ -61,6 +61,22 @@
     {
       "path": "pages/user-fans/index",
       "style": { "navigationBarTitleText": "关注与粉丝" }
+    },
+    {
+      "path": "pages/settings/notification",
+      "style": { "navigationBarTitleText": "消息通知设置" }
+    },
+    {
+      "path": "pages/settings/feedback",
+      "style": { "navigationBarTitleText": "帮助与反馈" }
+    },
+    {
+      "path": "pages/settings/agreement",
+      "style": { "navigationBarTitleText": "用户协议" }
+    },
+    {
+      "path": "pages/settings/about",
+      "style": { "navigationBarTitleText": "关于校园墙" }
     }
   ],
   "tabBar": {

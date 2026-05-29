@@ -3,10 +3,9 @@ import { request, upload, getFileUrl } from "@/utils/http";
 
 const EMPTY_TAB_STATE = () => ({
   records: [],
-  page: 1,
+  cursor: null,
   size: 10,
   hasMore: true,
-  total: 0,
 });
 
 function normalizeComment(comment = {}) {
@@ -29,7 +28,7 @@ function normalizePost(post = {}) {
   };
 }
 
-function mergePosts(posts = []) {
+function mergePosts(posts = [], sortByTime = true) {
   const map = new Map();
   posts.forEach((post) => {
     if (post?.id == null) {
@@ -37,9 +36,13 @@ function mergePosts(posts = []) {
     }
     map.set(Number(post.id), normalizePost(post));
   });
-  return Array.from(map.values()).sort(
-    (a, b) => new Date(b.createTime || b.fullTime || 0) - new Date(a.createTime || a.fullTime || 0),
-  );
+  const result = Array.from(map.values());
+  if (sortByTime) {
+    return result.sort(
+      (a, b) => new Date(b.createTime || b.fullTime || 0) - new Date(a.createTime || a.fullTime || 0),
+    );
+  }
+  return result;
 }
 
 export const usePostsStore = defineStore("posts", {
@@ -134,26 +137,27 @@ export const usePostsStore = defineStore("posts", {
       if (!tabState) {
         return [];
       }
-      if (this.loading) {
+      if (this.loading || (!refresh && !tabState.hasMore)) {
         return tabState.records;
       }
 
-      const page = refresh ? 1 : tabState.page;
+      const cursor = refresh ? null : tabState.cursor;
       this.loading = true;
       try {
         const result = await request({
-          url: "/api/posts",
+          url: "/api/posts/cursor",
           data: {
-            page,
+            cursor,
             size: tabState.size,
             type: tab,
           },
         });
         const records = (result?.records || []).map((item) => normalizePost(item));
-        tabState.records = refresh ? records : mergePosts([...tabState.records, ...records]);
-        tabState.total = Number(result?.total || tabState.records.length);
-        tabState.hasMore = tabState.records.length < tabState.total;
-        tabState.page = page + 1;
+        const sortByTime = tab !== "hot";
+        tabState.records = refresh ? records : mergePosts([...tabState.records, ...records], sortByTime);
+        tabState.cursor = result?.nextCursor;
+        tabState.hasMore = !!result?.hasMore;
+        
         records.forEach((post) => {
           this.detailMap[post.id] = { ...(this.detailMap[post.id] || {}), ...post };
         });

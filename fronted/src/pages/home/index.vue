@@ -30,8 +30,10 @@
         <view class="banner" @tap="onBanner">
           <view class="banner-text">
             <view class="banner-title-wrap">
-              <image class="banner-title-icon-svg" src="/static/icons/party.svg" mode="aspectFit" />
-              <text class="banner-title">期末加油！</text>
+              <!-- <image class="banner-title-icon-svg" src="/static/icons/party.svg" mode="aspectFit" />
+                -->
+              
+              <text class="banner-title">🎉期末加油！</text>
             </view>
             <text class="banner-sub">距期末考试还有 21 天，冲！</text>
           </view>
@@ -70,8 +72,8 @@
             </view>
             <!-- 加载更多 -->
             <view class="load-more">
-              <text v-if="loadingMore" class="load-more-text">正在加载更多精彩...</text>
-              <text v-else class="load-more-text">— 已经到底啦 —</text>
+              <text v-if="postsStore.loading" class="load-more-text">正在加载更多精彩...</text>
+              <text v-else-if="!hasMoreData(tab.key)" class="load-more-text">— 已经到底啦 —</text>
             </view>
           </scroll-view>
         </swiper-item>
@@ -95,7 +97,6 @@ const postsStore = usePostsStore();
 const userStore = useUserStore();
 const activeIndex = ref(0);
 const refreshing = ref(false);
-const loadingMore = ref(false);
 const isSearching = ref(false);
 
 // 新增：动态控制是否允许下拉刷新，避免遮挡 Bug
@@ -119,6 +120,10 @@ function onOuterScroll(e) {
 
 function getFilteredPosts(key) {
   return postsStore.getPostsByTab(key);
+}
+
+function hasMoreData(key) {
+  return postsStore.tabs[key]?.hasMore;
 }
 
 function switchTab(index) {

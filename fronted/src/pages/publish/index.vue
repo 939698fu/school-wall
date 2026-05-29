@@ -20,7 +20,7 @@
           <textarea
             class="content-input"
             v-model="content"
-            placeholder="分享你的故事、问题或想法...（支持 @ 同学，# 话题标签）"
+            placeholder="分享你的故事、问题或想法...（支持 @ 同学，# 话题标签，十个字以上）"
             :cursor-spacing="200"
             @input="onContentInput"
             @blur="onContentBlur"

@@ -118,7 +118,7 @@
               ></ParsedPostText>
               <view class="comment-footer">
                 <text class="comment-time">{{ comment.time }}</text>
-                <view class="comment-like" @tap="likeComment(comment)">
+                <view class="comment-like" :class="{ liked: comment.liked }" @tap="likeComment(comment)">
                   <image 
                     class="comment-like-icon-svg" 
                     :src="comment.liked ? '/static/icons/heart-fill.svg' : '/static/icons/heart-outline.svg'" 
@@ -802,6 +802,11 @@ function showError(error) {
   gap: 6rpx;
 }
 
+.comment-like.liked .comment-like-num {
+  color: var(--primary);
+  font-weight: 600;
+}
+
 .comment-like-icon-svg {
   width: 26rpx;
   height: 26rpx;
@@ -876,6 +881,16 @@ function showError(error) {
   color: #999999;
   margin-top: 6rpx; /* 控制数字和图标的间距 */
   line-height: 1;
+}
+
+.action-btn.liked .action-btn-num {
+  color: var(--primary);
+  font-weight: 600;
+}
+
+.action-btn.collected .action-btn-num {
+  color: #ffaa00;
+  font-weight: 600;
 }
 
 /* 评论输入弹窗 */

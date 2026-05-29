@@ -388,12 +388,26 @@ const displayLikeCount = computed(
 );
 
 const settingItems = [
-  { icon: "🔔", label: "消息通知设置", action: () => toast("开发中") },
-  { icon: "🔒", label: "隐私设置", action: () => toast("开发中") },
-  { icon: "🎨", label: "外观设置", action: () => toast("开发中") },
-  { icon: "❓", label: "帮助与反馈", action: () => toast("开发中") },
-  { icon: "📋", label: "用户协议", action: () => toast("开发中") },
-  { icon: "ℹ️", label: "关于校园墙", action: () => toast("v1.0.0") },
+  { 
+    icon: "🔔", 
+    label: "消息通知设置", 
+    action: () => uni.navigateTo({ url: "/pages/settings/notification" }) 
+  },
+  { 
+    icon: "❓", 
+    label: "帮助与反馈", 
+    action: () => uni.navigateTo({ url: "/pages/settings/feedback" }) 
+  },
+  { 
+    icon: "📋", 
+    label: "用户协议", 
+    action: () => uni.navigateTo({ url: "/pages/settings/agreement" }) 
+  },
+  { 
+    icon: "ℹ️", 
+    label: "关于校园墙", 
+    action: () => uni.navigateTo({ url: "/pages/settings/about" }) 
+  },
 ];
 
 function toast(msg) {

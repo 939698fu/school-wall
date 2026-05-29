@@ -1,40 +1,47 @@
 <template>
   <view class="home-page">
-    <!-- 自定义导航栏 -->
+    <!-- 自定义导航栏 (通透质感) -->
     <view class="nav-bar">
       <view class="nav-inner">
         <text class="nav-title">校园微墙</text>
       </view>
     </view>
 
+    <!-- 外层滚动区域 -->
     <scroll-view
       scroll-y
       class="scroll-area"
+      @scroll="onOuterScroll"
       @scrolltolower="loadMore"
-      refresher-enabled
+      :refresher-enabled="isTop"
       :refresher-triggered="refreshing"
       @refresherrefresh="onRefresh"
     >
       <!-- 搜索栏 -->
       <view class="search-container" @tap="goSearch">
         <view class="search-bar" :class="{ 'search-active': isSearching }">
-          <text class="search-icon">🔍</text>
+          <image class="search-icon-svg" src="/static/icons/search.svg" mode="aspectFit" />
           <text class="search-placeholder">大家都在搜 "期末复习资料"</text>
         </view>
       </view>
 
-      <!-- Banner -->
+      <!-- Banner (增加悬浮发光质感) -->
       <view class="banner-wrapper">
         <view class="banner" @tap="onBanner">
-        <view class="banner-text">
-          <text class="banner-title">🎉 期末加油！</text>
-          <text class="banner-sub">距期末考试还有 21 天，冲！</text>
+          <view class="banner-text">
+            <view class="banner-title-wrap">
+              <!-- <image class="banner-title-icon-svg" src="/static/icons/party.svg" mode="aspectFit" />
+                -->
+              
+              <text class="banner-title">🎉期末加油！</text>
+            </view>
+            <text class="banner-sub">距期末考试还有 21 天，冲！</text>
+          </view>
+          <image class="banner-emoji-svg" src="/static/icons/books.svg" mode="aspectFit" />
         </view>
-        <text class="banner-emoji">📚</text>
-      </view>
       </view>
 
-      <!-- 分类 Tab -->
+      <!-- 分类 Tab (去线留白) -->
       <view class="section-tabs">
         <view
           v-for="(tab, index) in tabs"
@@ -47,7 +54,7 @@
         </view>
       </view>
 
-      <!-- 帖子列表 (使用 Swiper 滑动) -->
+      <!-- 帖子列表 (使用 Swiper 滑动，底层背景为淡灰) -->
       <swiper
         class="swiper-box"
         :current="activeIndex"
@@ -56,16 +63,17 @@
         <swiper-item v-for="tab in tabs" :key="tab.key">
           <scroll-view scroll-y class="swiper-scroll" @scrolltolower="loadMore">
             <view class="post-list">
+              <!-- 修改为双标签，避免微信小程序编译报错 -->
               <PostCard
                 v-for="post in getFilteredPosts(tab.key)"
                 :key="post.id"
                 :post="post"
-              />
+              ></PostCard>
             </view>
             <!-- 加载更多 -->
             <view class="load-more">
-              <text v-if="loadingMore" class="load-more-text">加载中...</text>
-              <text v-else class="load-more-text">— 已经到底了 —</text>
+              <text v-if="postsStore.loading" class="load-more-text">正在加载更多精彩...</text>
+              <text v-else-if="!hasMoreData(tab.key)" class="load-more-text">— 已经到底啦 —</text>
             </view>
           </scroll-view>
         </swiper-item>
@@ -89,8 +97,10 @@ const postsStore = usePostsStore();
 const userStore = useUserStore();
 const activeIndex = ref(0);
 const refreshing = ref(false);
-const loadingMore = ref(false);
 const isSearching = ref(false);
+
+// 新增：动态控制是否允许下拉刷新，避免遮挡 Bug
+const isTop = ref(true);
 
 const tabs = [
   { key: "latest", label: "最新" },
@@ -103,8 +113,17 @@ onMounted(() => {
   postsStore.fetchPostsByTab("latest", { refresh: true }).catch(showError);
 });
 
+// 新增：监听外层滚动，只有在完全顶部时才允许下拉刷新
+function onOuterScroll(e) {
+  isTop.value = e.detail.scrollTop <= 10;
+}
+
 function getFilteredPosts(key) {
   return postsStore.getPostsByTab(key);
+}
+
+function hasMoreData(key) {
+  return postsStore.tabs[key]?.hasMore;
 }
 
 function switchTab(index) {
@@ -121,6 +140,7 @@ function onSwiperChange(e) {
 }
 
 async function onRefresh() {
+  if (!isTop.value) return; // 双重拦截，防止滚动中误触发
   refreshing.value = true;
   try {
     const tabKey = tabs[activeIndex.value].key;
@@ -180,20 +200,19 @@ function showError(error) {
 
 <style scoped>
 .home-page {
-  min-height: 100vh;
-  background: var(--bg);
+  height: 100vh; /* 修复：从 min-height 改为 height，彻底锁死页面 */
+  background: #f5f6f8; 
   display: flex;
   flex-direction: column;
+  overflow: hidden; /* 修复：切断页面级原生滚动 */
 }
 
-/* 导航栏 */
+/* =============== 导航栏 =============== */
 .nav-bar {
-  background: #ffffff;
-  border-bottom: 1rpx solid var(--border);
+  background: rgba(255, 255, 255, 0.98);
   padding-top: 85rpx;
   flex-shrink: 0;
-  position: sticky;
-  top: 0;
+  /* 修复：移除原本多余的 position: sticky，它在 flex 容器中会导致渲染错位 */
   z-index: 100;
 }
 
@@ -205,10 +224,10 @@ function showError(error) {
 }
 
 .nav-title {
-  font-size: 36rpx;
+  font-size: 42rpx;
   font-weight: 800;
-  color: var(--text-main);
-  letter-spacing: 2rpx;
+  color: #1a1a1a;
+  letter-spacing: 1rpx;
 }
 
 .nav-right {
@@ -227,24 +246,23 @@ function showError(error) {
   font-size: 36rpx;
 }
 
-/* 滚动区域 */
+/* =============== 滚动区域 =============== */
 .scroll-area {
   flex: 1;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
+  height: 0; /* 修复：必须给 0 才能让 flex: 1 完美自适应内部尺寸，不再超出屏幕 */
+  width: 100%;
 }
 
-/* 搜索栏 */
+/* =============== 搜索栏 =============== */
 .search-container {
-  padding: 20rpx 24rpx;
+  padding: 16rpx 32rpx 24rpx;
   background: #ffffff;
 }
 
 .search-bar {
-  background: #f5f5f0;
-  height: 80rpx;
-  border-radius: 40rpx;
+  background: #f8f9fa; 
+  height: 88rpx;
+  border-radius: 44rpx;
   display: flex;
   align-items: center;
   padding: 0 32rpx;
@@ -254,106 +272,128 @@ function showError(error) {
 }
 
 .search-active {
-  transform: scale(0.96);
+  transform: scale(0.97);
   background: #f0f0f0;
-  border-color: #ff5a35;
+  border-color: rgba(255, 90, 53, 0.5);
 }
 
-.search-icon {
-  font-size: 32rpx;
+.search-icon-svg {
+  width: 36rpx;
+  height: 36rpx;
+  display: block;
 }
 
 .search-placeholder {
-  font-size: 28rpx;
+  font-size: 30rpx;
   color: #aaaaaa;
 }
 
-/* Banner */
+/* =============== Banner =============== */
 .banner-wrapper {
   background: #ffffff;
+  padding-bottom: 24rpx;
 }
 
 .banner {
-  margin: 0 24rpx;
-  border-radius: 24rpx;
-  background: linear-gradient(120deg, #ff5a35, #ff9035);
-  padding: 28rpx 32rpx;
+  margin: 0 32rpx; 
+  border-radius: 32rpx; 
+  background: linear-gradient(135deg, #ff7a1a 0%, #ff5722 100%);
+  padding: 32rpx 40rpx;
   display: flex;
   align-items: center;
+  box-shadow: 0 16rpx 32rpx rgba(255, 87, 34, 0.2); 
 }
 
 .banner-text {
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 8rpx;
+  gap: 10rpx;
+}
+
+.banner-title-wrap {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+}
+
+.banner-title-icon-svg {
+  width: 36rpx;
+  height: 36rpx;
+  display: block;
 }
 
 .banner-title {
-  font-size: 30rpx;
-  font-weight: 700;
+  font-size: 34rpx;
+  font-weight: 800;
   color: #ffffff;
+  letter-spacing: 0.5rpx;
 }
 
 .banner-sub {
-  font-size: 24rpx;
-  color: rgba(255, 255, 255, 0.85);
+  font-size: 26rpx;
+  color: rgba(255, 255, 255, 0.9);
 }
 
-.banner-emoji {
-  font-size: 72rpx;
+.banner-emoji-svg {
+  width: 80rpx;
+  height: 80rpx;
   margin-left: 16rpx;
+  display: block;
 }
 
-/* 分类 Tab */
+/* =============== 分类 Tab =============== */
 .section-tabs {
   display: flex;
   background: #ffffff;
-  border-bottom: 1rpx solid var(--border);
-  padding: 0 24rpx;
+  padding: 0 20rpx;
   position: sticky;
   top: 0;
   z-index: 10;
+  box-shadow: 0 8rpx 16rpx rgba(0, 0, 0, 0.015); 
 }
 
 .tab-item {
-  padding: 24rpx 32rpx;
+  padding: 24rpx 28rpx;
   font-size: 30rpx;
-  color: var(--text-sub);
+  color: #888888;
   position: relative;
-  transition: all 0.2s;
+  transition: all 0.25s cubic-bezier(0.1, 0.7, 0.1, 1);
 }
 
 .tab-item.active {
   color: var(--primary);
-  font-weight: 600;
+  font-weight: 700;
+  font-size: 32rpx;
 }
 
 .tab-item.active::after {
   content: "";
   position: absolute;
-  bottom: 0;
+  bottom: 8rpx;
   left: 50%;
   transform: translateX(-50%);
-  width: 40rpx;
-  height: 6rpx;
+  width: 32rpx;
+  height: 8rpx;
   background: var(--primary);
-  border-radius: 3rpx;
+  border-radius: 4rpx;
 }
 
-/* Swiper 盒子 */
+/* =============== Swiper 盒子 =============== */
 .swiper-box {
   flex: 1;
-  height: calc(100vh - 450rpx);
+  /* 修复：精准计算减去顶部吸顶区域的高度，确保滑动列表恰好填满剩余屏幕，不再有留白 */
+  height: calc(100vh - 260rpx);
+  background: #f5f6f8;
 }
 
 .swiper-scroll {
   height: 100%;
 }
 
-/* 帖子列表 */
+/* =============== 帖子列表 =============== */
 .post-list {
-  padding: 12rpx 0;
+  padding: 8rpx 0 24rpx;
 }
 
 .load-more {
@@ -363,24 +403,24 @@ function showError(error) {
 
 .load-more-text {
   font-size: 24rpx;
-  color: var(--text-hint);
+  color: #bbbbbb;
 }
 
-/* 悬浮发布按钮 */
+/* =============== 悬浮发布按钮 =============== */
 .fab-btn {
   position: fixed;
   right: 40rpx;
-  bottom: 60rpx;
-  width: 110rpx;
-  height: 110rpx;
-  background: var(--primary);
+  bottom: calc(60rpx + env(safe-area-inset-bottom));
+  width: 112rpx;
+  height: 112rpx;
+  background: linear-gradient(135deg, #ff7a1a 0%, #ff5722 100%);
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 8rpx 32rpx rgba(255, 90, 53, 0.4);
+  box-shadow: 0 12rpx 32rpx rgba(255, 87, 34, 0.35); 
   z-index: 99;
-  transition: transform 0.2s active;
+  transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .fab-btn:active {
@@ -388,9 +428,9 @@ function showError(error) {
 }
 
 .fab-icon {
-  font-size: 60rpx;
+  font-size: 64rpx;
   color: #ffffff;
   font-weight: 300;
-  margin-top: -4rpx;
+  margin-top: -6rpx;
 }
 </style>

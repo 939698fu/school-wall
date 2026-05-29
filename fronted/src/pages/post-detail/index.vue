@@ -2,7 +2,6 @@
   <view class="detail-page">
     <scroll-view scroll-y class="scroll-area">
       <view v-if="post" class="content-wrap">
-        <!-- 标签 -->
         <view class="detail-tags">
           <text class="tag" :class="`tag-${post.tagColor}`">{{
             post.tag
@@ -10,10 +9,8 @@
           <text v-if="post.isAnon" class="tag tag-anon">匿名</text>
         </view>
 
-        <!-- 标题 -->
         <text class="detail-title">{{ post.title }}</text>
 
-        <!-- 作者信息 -->
         <view class="author-row">
           <image
             v-if="String(post.authorAvatar).includes('/')"
@@ -36,7 +33,6 @@
           >{{ authorIsFollowed ? "已关注" : "+ 关注" }}</view>
         </view>
 
-        <!-- 正文 -->
         <view class="detail-content">
           <ParsedPostText
             class="content-text"
@@ -44,10 +40,9 @@
             multiline
             @mention="goMentionProfile"
             @tag="goTagSearch"
-          />
+          ></ParsedPostText>
         </view>
 
-        <!-- 图片 -->
         <view v-if="post.images && post.images.length" class="detail-imgs">
           <image
             v-for="(img, i) in post.images"
@@ -59,29 +54,36 @@
           />
         </view>
 
-        <!-- 点赞/收藏统计 -->
         <view class="stat-row">
           <view class="stat-item" :class="{ active: post.liked }" @tap="onLike">
-            <text class="stat-icon">{{ post.liked ? "❤️" : "🤍" }}</text>
+            <image 
+              class="stat-icon-svg" 
+              :src="post.liked ? '/static/icons/heart-fill.svg' : '/static/icons/heart-outline.svg'" 
+              mode="aspectFit" 
+            />
             <text class="stat-num">{{ post.likes }} 人觉得有用</text>
           </view>
           <view class="stat-item">
-            <text class="stat-icon">💬</text>
+            <image 
+              class="stat-icon-svg" 
+              src="/static/icons/comment.svg" 
+              mode="aspectFit" 
+            />
             <text class="stat-num">{{ post.commentCount }} 条评论</text>
           </view>
         </view>
 
-        <!-- 分割线 -->
         <view class="divider"></view>
 
-        <!-- 评论区 -->
         <view class="comments-section">
-          <text class="comments-title"
-            >💬 全部评论 {{ post.commentCount }}</text
-          >
+          <view class="comments-title-wrap">
+            <image class="title-icon-svg" src="/static/icons/comment.svg" mode="aspectFit" />
+            <text class="comments-title">全部评论 {{ post.commentCount }}</text>
+          </view>
 
           <view v-if="post.comments.length === 0" class="no-comment">
-            <text>还没有评论，来抢沙发吧 🛋️</text>
+            <text>还没有评论，来抢沙发吧 </text>
+            <image class="empty-icon-svg" src="/static/icons/sofa.svg" mode="aspectFit" />
           </view>
 
           <view
@@ -113,13 +115,15 @@
                 multiline
                 @mention="goMentionProfile"
                 @tag="goTagSearch"
-              />
+              ></ParsedPostText>
               <view class="comment-footer">
                 <text class="comment-time">{{ comment.time }}</text>
-                <view class="comment-like" @tap="likeComment(comment)">
-                  <text class="comment-like-icon">{{
-                    comment.liked ? "❤️" : "🤍"
-                  }}</text>
+                <view class="comment-like" :class="{ liked: comment.liked }" @tap="likeComment(comment)">
+                  <image 
+                    class="comment-like-icon-svg" 
+                    :src="comment.liked ? '/static/icons/heart-fill.svg' : '/static/icons/heart-outline.svg'" 
+                    mode="aspectFit" 
+                  />
                   <text class="comment-like-num">{{ comment.likes }}</text>
                 </view>
               </view>
@@ -135,17 +139,19 @@
       </view>
     </scroll-view>
 
-    <!-- 浮动更多按钮 -->
     <view v-if="post" class="float-more-btn" @tap="showMore">⋯</view>
 
-    <!-- 底部操作栏 -->
     <view class="action-bar safe-area-bottom" v-if="post">
       <view class="comment-input" @tap="focusInput">
         <text class="input-placeholder">说点什么...</text>
       </view>
       <view class="action-btns">
         <view class="action-btn" :class="{ liked: post.liked }" @tap="onLike">
-          <text class="action-btn-icon">{{ post.liked ? "❤️" : "🤍" }}</text>
+          <image 
+            class="action-icon-svg" 
+            :src="post.liked ? '/static/icons/heart-fill.svg' : '/static/icons/heart-outline.svg'" 
+            mode="aspectFit" 
+          />
           <text class="action-btn-num">{{ post.likes }}</text>
         </view>
         <view
@@ -153,15 +159,18 @@
           :class="{ collected: post.collected }"
           @tap="onCollect"
         >
-          <text class="action-btn-icon">{{ post.collected ? "⭐" : "☆" }}</text>
+          <image 
+            class="action-icon-svg" 
+            :src="post.collected ? '/static/icons/star-fill.svg' : '/static/icons/star-outline.svg'" 
+            mode="aspectFit" 
+          />
         </view>
         <view class="action-btn" @tap="onShare">
-          <text class="action-btn-icon">↗</text>
+          <image class="action-icon-svg" src="/static/icons/share.svg" mode="aspectFit" />
         </view>
       </view>
     </view>
 
-    <!-- 评论输入框弹窗 -->
     <view
       v-if="showCommentInput"
       class="comment-popup-mask"
@@ -205,7 +214,9 @@ import { ref, computed } from "vue";
 import { onLoad, onShow } from "@dcloudio/uni-app";
 import { usePostsStore } from "@/stores/posts";
 import { useUserStore } from "@/stores/user";
-import ParsedPostText from "@/components/ParsedPostText.vue";
+
+// 恢复手动引入组件，确保组件能正常注册和渲染
+import ParsedPostText from "../../components/ParsedPostText.vue";
 
 const postsStore = usePostsStore();
 const userStore = useUserStore();
@@ -238,7 +249,7 @@ const showFollowBtn = computed(() => {
   return Number(post.value.authorId) !== Number(userStore.userInfo?.id);
 });
 
-// 当前作者的关注状态（从 store 缓存里读，fetchUserById 会写入）
+// 当前作者的关注状态
 const authorIsFollowed = computed(() => {
   if (!post.value?.authorId) return false;
   return userStore.getUserById(post.value.authorId)?.isFollowed === true;
@@ -462,10 +473,11 @@ function showError(error) {
 }
 
 .detail-page {
-  min-height: 100vh;
+  height: 100vh; /* 关键修改：从 min-height 改为死高 100vh */
   background: #ffffff;
   display: flex;
   flex-direction: column;
+  overflow: hidden; /* 关键修改：切断页面级滚动，全权交给内部的 scroll-view */
 }
 
 /* 导航 */
@@ -509,8 +521,8 @@ function showError(error) {
 
 /* 滚动区 */
 .scroll-area {
-  flex: 1;
-  height: calc(100vh - 100rpx - var(--status-bar-height, 44px));
+  flex: 1; 
+  height: 0; /* 关键修改：配合 flex: 1，这是小程序里让 scroll-view 完美自适应剩余高度的经典写法 */
 }
 
 .content-wrap {
@@ -636,9 +648,12 @@ function showError(error) {
   color: var(--primary);
 }
 
-.stat-icon {
-  font-size: 28rpx;
+.stat-icon-svg {
+  width: 32rpx;
+  height: 32rpx;
+  display: block;
 }
+
 .stat-num {
   font-size: 24rpx;
   color: var(--text-hint);
@@ -656,19 +671,37 @@ function showError(error) {
   padding: 24rpx 0;
 }
 
+.comments-title-wrap {
+  display: flex;
+  align-items: center;
+  margin-bottom: 22rpx;
+}
+
+.title-icon-svg {
+  width: 32rpx;
+  height: 32rpx;
+  margin-right: 8rpx;
+}
+
 .comments-title {
   font-size: 28rpx;
   font-weight: 600;
   color: var(--text-sub);
-  margin-bottom: 22rpx;
-  display: block;
 }
 
 .no-comment {
-  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   padding: 48rpx 0;
   color: var(--text-hint);
   font-size: 28rpx;
+}
+
+.empty-icon-svg {
+  width: 36rpx;
+  height: 36rpx;
+  margin-left: 8rpx;
 }
 
 .comment-item {
@@ -766,12 +799,19 @@ function showError(error) {
 .comment-like {
   display: flex;
   align-items: center;
-  gap: 4rpx;
+  gap: 6rpx;
 }
 
-.comment-like-icon {
-  font-size: 22rpx;
+.comment-like.liked .comment-like-num {
+  color: var(--primary);
+  font-weight: 600;
 }
+
+.comment-like-icon-svg {
+  width: 26rpx;
+  height: 26rpx;
+}
+
 .comment-like-num {
   font-size: 22rpx;
   color: var(--text-hint);
@@ -785,7 +825,7 @@ function showError(error) {
   display: flex;
   align-items: center;
   gap: 20rpx;
-  flex-shrink: 0;
+  flex-shrink: 0; /* 保证底部栏在 flex 布局中绝对不会被压缩 */
   z-index: 100;
 }
 
@@ -818,8 +858,9 @@ function showError(error) {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  padding: 8rpx;
+  justify-content: flex-start; /* 关键修复：强制内部的图标靠顶部对齐 */
+  height: 76rpx; /* 关键修复：锁死容器高度，让三个按钮无论有没有数字都一样高 */
+  padding: 4rpx 8rpx 0;
   min-width: 64rpx;
   transition: all 0.2s;
 }
@@ -828,26 +869,31 @@ function showError(error) {
   transform: scale(0.9);
 }
 
-.action-btn.liked .action-btn-icon {
-  color: #ff4d4f;
-}
-
-.action-btn.collected .action-btn-icon {
-  color: #ffcc00;
-}
-
-.action-btn-icon {
-  font-size: 36rpx;
-  line-height: 1;
+.action-icon-svg {
+  width: 48rpx; /* 稍微调大一丢丢，视觉更协调 */
+  height: 48rpx;
+  display: block;
+  flex-shrink: 0;
 }
 
 .action-btn-num {
   font-size: 20rpx;
   color: #999999;
-  margin-top: 4rpx;
+  margin-top: 6rpx; /* 控制数字和图标的间距 */
+  line-height: 1;
 }
 
-/* 评论输入弹窗优化 */
+.action-btn.liked .action-btn-num {
+  color: var(--primary);
+  font-weight: 600;
+}
+
+.action-btn.collected .action-btn-num {
+  color: #ffaa00;
+  font-weight: 600;
+}
+
+/* 评论输入弹窗 */
 .comment-popup-mask {
   position: fixed;
   inset: 0;

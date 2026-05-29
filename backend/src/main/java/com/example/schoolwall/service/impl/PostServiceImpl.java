@@ -124,33 +124,35 @@ public class PostServiceImpl extends ServiceImpl<PostMapper, Post> implements Po
         LambdaQueryWrapper<Post> wrapper = new LambdaQueryWrapper<>();
         appendVisibilityCondition(wrapper, userId);
 
-        // 游标条件：只查询create_time小于游标的数据
-        if (cursor != null) {
-            wrapper.lt(Post::getCreateTime, java.time.LocalDateTime.ofEpochSecond(cursor, 0, java.time.ZoneOffset.UTC));
-        }
-
         // 标签筛选
         if (tag != null && !tag.isEmpty()) {
             wrapper.eq(Post::getTag, tag);
         }
 
-        // 排序类型
-        switch (type != null ? type : "latest") {
-            case "hot":
-                wrapper.orderByDesc(Post::getLikes);
-                break;
-            case "hole":
-                wrapper.eq(Post::getIsAnon, 1).orderByDesc(Post::getCreateTime);
-                break;
-            case "love":
-                wrapper.eq(Post::getTag, "表白").orderByDesc(Post::getCreateTime);
-                break;
-            default:
-                wrapper.orderByDesc(Post::getCreateTime);
-        }
+        String sortType = type != null ? type : "latest";
 
-        // 多查一条判断是否有更多数据
-        wrapper.last("LIMIT " + (size + 1));
+        // 游标条件与排序
+        if ("hot".equals(sortType)) {
+            wrapper.orderByDesc(Post::getLikes).orderByDesc(Post::getId);
+            if (cursor != null) {
+                // 热门排序暂时使用 offset 模拟游标（cursor 传入已加载的数量）
+                wrapper.last("LIMIT " + cursor + ", " + (size + 1));
+            } else {
+                wrapper.last("LIMIT " + (size + 1));
+            }
+        } else {
+            if ("hole".equals(sortType)) {
+                wrapper.eq(Post::getIsAnon, 1);
+            } else if ("love".equals(sortType)) {
+                wrapper.eq(Post::getTag, "表白");
+            }
+            
+            if (cursor != null) {
+                wrapper.lt(Post::getCreateTime, java.time.LocalDateTime.ofEpochSecond(cursor, 0, java.time.ZoneOffset.UTC));
+            }
+            wrapper.orderByDesc(Post::getCreateTime).orderByDesc(Post::getId);
+            wrapper.last("LIMIT " + (size + 1));
+        }
 
         List<Post> posts = baseMapper.selectList(wrapper);
 
@@ -165,9 +167,14 @@ public class PostServiceImpl extends ServiceImpl<PostMapper, Post> implements Po
 
         Long nextCursor = null;
         if (hasMore && !posts.isEmpty()) {
-            Post lastPost = posts.get(posts.size() - 1);
-            if (lastPost.getCreateTime() != null) {
-                nextCursor = lastPost.getCreateTime().toEpochSecond(java.time.ZoneOffset.UTC);
+            if ("hot".equals(sortType)) {
+                // 热门排序下，nextCursor 为当前已加载的总数
+                nextCursor = (cursor != null ? cursor : 0) + size;
+            } else {
+                Post lastPost = posts.get(posts.size() - 1);
+                if (lastPost.getCreateTime() != null) {
+                    nextCursor = lastPost.getCreateTime().toEpochSecond(java.time.ZoneOffset.UTC);
+                }
             }
         }
 

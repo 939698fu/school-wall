@@ -37,7 +37,7 @@
             </view>
             <text class="banner-sub">距期末考试还有 21 天，冲！</text>
           </view>
-          <image class="banner-emoji-svg" src="/static/icons/books.svg" mode="aspectFit" />
+          <text class="banner-emoji-text">📚</text>
         </view>
       </view>
 
@@ -72,7 +72,10 @@
             </view>
             <!-- 加载更多 -->
             <view class="load-more">
-              <text v-if="postsStore.loading" class="load-more-text">正在加载更多精彩...</text>
+              <view v-if="loadingMore" class="loading-box">
+                <view class="spinner"></view>
+                <text class="load-more-text">正在加载更多精彩...</text>
+              </view>
               <text v-else-if="!hasMoreData(tab.key)" class="load-more-text">— 已经到底啦 —</text>
             </view>
           </scroll-view>
@@ -98,6 +101,7 @@ const userStore = useUserStore();
 const activeIndex = ref(0);
 const refreshing = ref(false);
 const isSearching = ref(false);
+const loadingMore = ref(false);
 
 // 新增：动态控制是否允许下拉刷新，避免遮挡 Bug
 const isTop = ref(true);
@@ -155,8 +159,17 @@ async function onRefresh() {
 
 function loadMore() {
   const tabKey = tabs[activeIndex.value].key;
+  if (loadingMore.value || !hasMoreData(tabKey)) return;
+  
+  loadingMore.value = true;
   postsStore.setActiveTab(tabKey);
-  postsStore.fetchPostsByTab(tabKey).catch(showError);
+  
+  // 增加延迟设计，展示加载动画
+  setTimeout(() => {
+    postsStore.fetchPostsByTab(tabKey).catch(showError).finally(() => {
+      loadingMore.value = false;
+    });
+  }, 800);
 }
 
 function goSearch() {
@@ -335,11 +348,10 @@ function showError(error) {
   color: rgba(255, 255, 255, 0.9);
 }
 
-.banner-emoji-svg {
-  width: 80rpx;
-  height: 80rpx;
+.banner-emoji-text {
+  font-size: 80rpx;
   margin-left: 16rpx;
-  display: block;
+  line-height: 1;
 }
 
 /* =============== 分类 Tab =============== */
@@ -399,6 +411,29 @@ function showError(error) {
 .load-more {
   text-align: center;
   padding: 32rpx 0 64rpx;
+}
+
+.loading-box {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16rpx;
+  margin-bottom: 20rpx;
+}
+
+.spinner {
+  width: 32rpx;
+  height: 32rpx;
+  border: 3rpx solid #e0e0e0;
+  border-top-color: var(--primary, #ff7a1a);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .load-more-text {

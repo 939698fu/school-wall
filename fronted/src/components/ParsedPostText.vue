@@ -74,7 +74,7 @@ function parseLine(line) {
     }
 
     tokens.push({
-      type: match.startsWith("@") ? "mention" : "tag",
+      type: match.startsWith("@") ? "mention" : "hashtag",
       value: match,
     });
     lastIndex = offset + match.length;
@@ -119,7 +119,7 @@ function handleTokenTap(token) {
     emit("mention", token.value.slice(1));
   }
 
-  if (token.type === "tag") {
+  if (token.type === "hashtag") {
     emit("tag", token.value.slice(1));
   }
 }
@@ -143,7 +143,7 @@ function handleTokenTap(token) {
 }
 
 .mention,
-.tag {
+.hashtag {
   color: #ff5a35;
   font-weight: 600;
 }

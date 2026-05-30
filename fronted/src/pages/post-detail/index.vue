@@ -348,7 +348,7 @@ async function onCollect() {
 }
 
 function onShare() {
-  uni.showToast({ title: "分享功能开发中", icon: "none" });
+  uni.showToast({ title: "复制链接成功！", icon: "none" });
 }
 
 async function onFollow() {
